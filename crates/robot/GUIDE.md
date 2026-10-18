@@ -81,3 +81,9 @@ robot's own motion or when inverted.
 - Spinners: the disc must sit on a `shaft` part running through structure on BOTH sides (`spinner.bearing`); declaring `supported_both_ends` is checked, not trusted.
 - Always run the newest binary: `robot verify` prints `check set revision N`; rebuild if it is lower than the repo's `CHECKS_REVISION`.
 - The report ends with NOT CHECKED: those items were not judged, a pass says nothing about them.
+
+## Fast builds (cloud sessions)
+
+A SessionStart hook (`.claude/hooks/session-start.sh`) pre-fetches crates and pre-builds the `robot` CLI. For probe iteration use the `fast` profile (no LTO, 256 codegen units, incremental, deps at opt-level 3):
+
+    cargo build --profile fast -p cadcraft-robot --bin robot   # target/fast/robot
