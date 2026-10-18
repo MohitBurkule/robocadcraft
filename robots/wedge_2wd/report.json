@@ -1040,5 +1040,5 @@
     "Gyro, spin-up time and ESC current limits of the weapon",
     "Thermal limits and glue or tape strength (declared only)"
   ],
-  "checks_revision": 6
+  "checks_revision": 7
 }

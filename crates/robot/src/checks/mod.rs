@@ -48,7 +48,7 @@ pub struct Ctx<'a> {
 }
 
 /// Bumped whenever a check is added or changed; the CLI prints it so a stale binary is obvious.
-pub const CHECKS_REVISION: u32 = 6;
+pub const CHECKS_REVISION: u32 = 7;
 
 pub fn verify(spec: Spec, opts: &Options) -> Report {
     let r = resolve(spec);

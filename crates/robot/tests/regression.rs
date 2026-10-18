@@ -77,3 +77,52 @@ fn report_lists_what_it_did_not_check() {
     assert_eq!(rep.checks_revision, CHECKS_REVISION);
     assert!(!rep.not_checked.is_empty(), "a pass must never read as 'everything was checked'");
 }
+
+fn shaft_spec(with_shaft: bool, fork_gap: f64) -> Spec {
+    use cadcraft_robot::sdf::Shape;
+    use cadcraft_robot::spec::{Part, PartKind, RobotType, WeaponDef};
+    let mk = |id: &str, kind: PartKind, shape: Shape, at: [f64; 3], mat: &str, proc: &str| Part {
+        id: id.into(),
+        kind,
+        shape: Some(shape),
+        at,
+        material: Some(mat.into()),
+        process: Some(proc.into()),
+        ..Part::default()
+    };
+    let mut disc = mk("disc", PartKind::Weapon, Shape::cyl_x(20.0, 4.0).minus(vec![Shape::cyl_x(2.0, 6.0)]), [0.0, 0.0, 20.0], "steel", "machined");
+    disc.weapon = Some(WeaponDef { kind: "spinner".into(), spin_axis: Some([1.0, 0.0, 0.0]), ..WeaponDef::default() });
+    let mut parts = vec![
+        disc,
+        mk("fork_l", PartKind::Structure, Shape::boxed(5.0, 30.0, 50.0), [-fork_gap, 0.0, 20.0], "nylon", "fdm"),
+        mk("fork_r", PartKind::Structure, Shape::boxed(5.0, 30.0, 50.0), [fork_gap, 0.0, 20.0], "nylon", "fdm"),
+    ];
+    if with_shaft {
+        parts.push(mk("axle", PartKind::Shaft, Shape::cyl_x(2.0, 30.0), [0.0, 0.0, 20.0], "steel", "machined"));
+    }
+    Spec { name: "shaft".into(), robot_type: RobotType::VerticalSpinner, parts, ..Spec::default() }
+}
+
+#[test]
+fn shaft_through_both_forks_passes_bearing_check() {
+    let rep = verify(shaft_spec(true, 8.0), &Options::default());
+    assert!(!failed(&rep, "spinner.bearing"), "{:?}", rep.get("spinner.bearing"));
+}
+
+#[test]
+fn no_shaft_fails_bearing_check() {
+    assert!(failed(&verify(shaft_spec(false, 8.0), &Options::default()), "spinner.bearing"));
+}
+
+#[test]
+fn shaft_too_short_to_reach_forks_fails_bearing_check() {
+    assert!(failed(&verify(shaft_spec(true, 18.0), &Options::default()), "spinner.bearing"));
+}
+
+#[test]
+fn revron_v1_wires_and_floor_reach_are_flagged() {
+    let rep = verify(revron(), &Options::default());
+    assert!(failed(&rep, "spinner.wire_exposed"));
+    assert!(failed(&rep, "spinner.invert"));
+    assert!(failed(&rep, "spinner.reach"));
+}
