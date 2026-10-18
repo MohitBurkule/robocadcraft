@@ -56,6 +56,18 @@ pub enum PartKind {
     Nut,
     Bearing,
     Plate,
+    /// Wedge-like fork or arm that pivots and is spring loaded (see `tensioner`).
+    Fork,
+    /// Rubber, TPU or silicone tyre on a wheel hub (see `tyre_of`).
+    Tyre,
+    Pulley,
+    /// Drive belt or o-ring between two pulleys (see `belt`).
+    Belt,
+    /// Metal axle or shaft.
+    Shaft,
+    /// Metal hinge or locating pin.
+    Pin,
+    Spring,
     Other,
 }
 
@@ -82,6 +94,31 @@ pub struct Joint {
     pub min: f64,
     pub max: f64,
     pub default: f64,
+}
+
+/// How a spring-loaded or belt-driven part is kept under tension.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Tensioner {
+    /// `elastic`, `spring`, `printed_flexure`, `slotted_mount`, `idler`, `eccentric`, `set_screw`, `stretch` (o-ring), `none`.
+    pub kind: String,
+    /// The amount of tension can be changed without reprinting (extra holes, slot, screw).
+    pub adjustable: bool,
+    /// Attachment points (world, start pose) for elastic or spring ends.
+    pub anchors: Vec<[f64; 3]>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct BeltDef {
+    /// The two pulley part ids.
+    pub pulleys: Vec<String>,
+    /// `o_ring`, `gt2`, `flat`, `round`.
+    pub kind: String,
+    /// Unstretched loop length in mm (o-rings stretch; toothed belts do not).
+    pub length_mm: Option<f64>,
+    pub width_mm: f64,
+    pub thickness_mm: f64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -142,6 +179,19 @@ pub struct Part {
     /// Printed or bonded as one piece with this part: no overlap check, no retention needed.
     pub fused_with: Option<String>,
     pub weapon: Option<WeaponDef>,
+    /// Spring loading or belt tension for forks and belts.
+    pub tensioner: Option<Tensioner>,
+    pub belt: Option<BeltDef>,
+    /// For a tyre: the wheel hub it is fitted on.
+    pub tyre_of: Option<String>,
+    /// For a wheel that touches the ground without a tyre: why (e.g. cleats).
+    pub no_tyre_reason: Option<String>,
+    /// Switch slider travel direction in the part frame (default along local X).
+    pub actuation: Option<[f64; 3]>,
+    /// A removable part (locking bar, cover) held to the robot by a tether so it cannot be lost.
+    pub tethered: bool,
+    /// Servo or motor part id that moves this part on command.
+    pub actuated_by: Option<String>,
     /// Extra named ports in the part frame.
     pub ports: BTreeMap<String, [f64; 3]>,
 }
@@ -222,6 +272,8 @@ pub struct Spec {
     pub fasteners: Vec<Fastener>,
     pub wires: Vec<Wire>,
     pub electronics: Electronics,
+    /// The robot is meant to keep driving when flipped.
+    pub can_run_inverted: bool,
     pub allow_overlap: Vec<AllowOverlap>,
     pub claims: Vec<Claim>,
     /// Joint id (part id) -> value overriding the default for the start configuration.

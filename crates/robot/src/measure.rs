@@ -74,40 +74,129 @@ pub fn axial_inertia(world: &World, i: usize, origin: V3, axis: V3, want_step: f
     sum
 }
 
-/// Deepest penetration (mm) between bodies `a` and `b` and where, sampled on a grid of step `h`
-/// inside the intersection of their boxes; `None` when the boxes do not overlap.
-pub fn overlap_depth(world: &World, a: usize, b: usize, h: f64) -> Option<(f64, V3, f64)> {
+/// Result of an overlap test between two bodies.
+#[derive(Clone, Copy, Debug)]
+pub struct Overlap {
+    /// Deepest penetration in mm (0 when only touching or apart).
+    pub depth: f64,
+    pub at: V3,
+    /// Approximate overlapping volume in mm3.
+    pub volume: f64,
+}
+
+/// Deepest penetration between bodies `a` and `b`, with `a` moved by `shift` first. A coarse grid in
+/// the box intersection finds candidate cells near contact, which are refined four times finer.
+pub fn overlap_shifted(world: &World, a: usize, b: usize, shift: V3, coarse: f64) -> Option<Overlap> {
     let (ba, bb) = (world.bodies.get(a)?, world.bodies.get(b)?);
-    let ib = ba.aabb.intersect(&bb.aabb);
+    let abox = Aabb { min: ba.aabb.min + shift, max: ba.aabb.max + shift };
+    let ib = abox.intersect(&bb.aabb);
     if ib.is_empty() {
         return None;
     }
-    let ib = ib.grow(h * 0.5);
-    let h = step_for(&ib, h);
-    let (mut depth, mut at, mut vol) = (0.0_f64, ib.center(), 0.0);
-    let nx = ((ib.max.x - ib.min.x) / h).ceil() as i64;
-    let ny = ((ib.max.y - ib.min.y) / h).ceil() as i64;
-    let nz = ((ib.max.z - ib.min.z) / h).ceil() as i64;
+    let ib = ib.grow(coarse * 0.5);
+    let c = step_for(&ib, coarse);
+    let (nx, ny, nz) =
+        (((ib.max.x - ib.min.x) / c).ceil() as i64, ((ib.max.y - ib.min.y) / c).ceil() as i64, ((ib.max.z - ib.min.z) / c).ceil() as i64);
+    let f = |p: V3| world.sdf(a, p - shift).max(world.sdf(b, p));
+    let mut cands: Vec<(f64, V3)> = Vec::new();
+    let mut vol = 0.0;
     for iz in 0..nz.max(1) {
         for iy in 0..ny.max(1) {
             for ix in 0..nx.max(1) {
-                let p = v3(ib.min.x + (ix as f64 + 0.5) * h, ib.min.y + (iy as f64 + 0.5) * h, ib.min.z + (iz as f64 + 0.5) * h);
-                let da = world.sdf(a, p);
-                if da >= h {
+                let p = v3(ib.min.x + (ix as f64 + 0.5) * c, ib.min.y + (iy as f64 + 0.5) * c, ib.min.z + (iz as f64 + 0.5) * c);
+                let da = world.sdf(a, p - shift);
+                if da >= c {
                     continue;
                 }
                 let m = da.max(world.sdf(b, p));
-                if m < 0.0 {
-                    vol += coverage(m, h).min(coverage(da, h)) * h * h * h;
-                    if -m > depth {
-                        depth = -m;
-                        at = p;
+                if m < c {
+                    cands.push((m, p));
+                    if m < 0.0 {
+                        vol += coverage(m, c).min(coverage(da, c)) * c * c * c;
                     }
                 }
             }
         }
     }
-    Some((depth, at, vol))
+    cands.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap_or(std::cmp::Ordering::Equal));
+    cands.truncate(3000);
+    let (mut depth, mut at) = (0.0_f64, ib.center());
+    let q = c / 4.0;
+    for (m, p) in &cands {
+        if *m < 0.0 && -m > depth {
+            depth = -m;
+            at = *p;
+        }
+        for dz in -2..=2 {
+            for dy in -2..=2 {
+                for dx in -2..=2 {
+                    let pp = *p + v3(dx as f64 * q, dy as f64 * q, dz as f64 * q);
+                    let mm = f(pp);
+                    if -mm > depth {
+                        depth = -mm;
+                        at = pp;
+                    }
+                }
+            }
+        }
+    }
+    Some(Overlap { depth, at, volume: vol })
+}
+
+pub fn overlap(world: &World, a: usize, b: usize, coarse: f64) -> Option<Overlap> {
+    overlap_shifted(world, a, b, V3::ZERO, coarse)
+}
+
+/// Lowest point of body `i` (world), by sphere tracing up each column of an xy grid.
+pub fn lowest_point(world: &World, i: usize, step: f64) -> Option<V3> {
+    let b = world.bodies.get(i)?;
+    let bb = b.aabb;
+    let (nx, ny) = (((bb.max.x - bb.min.x) / step).ceil() as i64 + 1, ((bb.max.y - bb.min.y) / step).ceil() as i64 + 1);
+    let mut best: Option<V3> = None;
+    for iy in 0..ny {
+        for ix in 0..nx {
+            let (x, y) = (bb.min.x + ix as f64 * step, bb.min.y + iy as f64 * step);
+            let mut z = bb.min.z;
+            while z <= bb.max.z + 1e-9 {
+                if best.is_some_and(|p| z >= p.z) {
+                    break;
+                }
+                let d = world.sdf(i, v3(x, y, z));
+                if d < 0.01 {
+                    best = Some(v3(x, y, z));
+                    break;
+                }
+                z += d.max(0.04);
+            }
+        }
+    }
+    best
+}
+
+/// Highest point of body `i`.
+pub fn highest_point(world: &World, i: usize, step: f64) -> Option<V3> {
+    let b = world.bodies.get(i)?;
+    let bb = b.aabb;
+    let (nx, ny) = (((bb.max.x - bb.min.x) / step).ceil() as i64 + 1, ((bb.max.y - bb.min.y) / step).ceil() as i64 + 1);
+    let mut best: Option<V3> = None;
+    for iy in 0..ny {
+        for ix in 0..nx {
+            let (x, y) = (bb.min.x + ix as f64 * step, bb.min.y + iy as f64 * step);
+            let mut z = bb.max.z;
+            while z >= bb.min.z - 1e-9 {
+                if best.is_some_and(|p| z <= p.z) {
+                    break;
+                }
+                let d = world.sdf(i, v3(x, y, z));
+                if d < 0.01 {
+                    best = Some(v3(x, y, z));
+                    break;
+                }
+                z -= d.max(0.04);
+            }
+        }
+    }
+    best
 }
 
 /// Smallest distance (mm) from the surface of `a` to `b` (negative when they interpenetrate),

@@ -6,7 +6,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::math::{Aabb, V3, Xform, v3};
+use crate::math::{Aabb, Mat3, V3, Xform, v3};
 
 pub const MAX_DEPTH: usize = 24;
 pub const MAX_NODES: usize = 4000;
@@ -316,4 +316,82 @@ pub fn euler_from_mat(m: &crate::math::Mat3) -> (f64, f64, f64) {
 /// Fraction of a cubic voxel of edge `h` covered by a solid with signed distance `d` at its centre.
 pub fn coverage(d: f64, h: f64) -> f64 {
     (0.5 - d / h).clamp(0.0, 1.0)
+}
+
+/// A shape prepared for fast evaluation: rotations precomputed, child bounds cached so unions and
+/// subtractions skip children that cannot matter at the query point.
+#[derive(Clone, Debug)]
+pub struct Compiled {
+    node: Node,
+    pub bounds: Aabb,
+}
+
+#[derive(Clone, Debug)]
+enum Node {
+    Box(V3),
+    Cyl { r: f64, h2: f64 },
+    Sphere(f64),
+    Prism { pts: Vec<[f64; 2]>, h2: f64 },
+    Union(Vec<Compiled>),
+    Intersect(Vec<Compiled>),
+    Subtract { base: Box<Compiled>, cuts: Vec<Compiled> },
+    Place { child: Box<Compiled>, rt: Mat3, t: V3 },
+    Offset { child: Box<Compiled>, d: f64 },
+}
+
+impl Shape {
+    pub fn compile(&self) -> Compiled {
+        let bounds = self.bounds();
+        let node = match self {
+            Shape::Box { size } => Node::Box(arr3(*size) * 0.5),
+            Shape::Cylinder { radius, height } => Node::Cyl { r: *radius, h2: height * 0.5 },
+            Shape::Sphere { radius } => Node::Sphere(*radius),
+            Shape::Prism { points, height } => Node::Prism { pts: points.clone(), h2: height * 0.5 },
+            Shape::Union { items } => Node::Union(items.iter().map(Shape::compile).collect()),
+            Shape::Intersect { items } => Node::Intersect(items.iter().map(Shape::compile).collect()),
+            Shape::Subtract { base, cut } => Node::Subtract { base: Box::new(base.compile()), cuts: cut.iter().map(Shape::compile).collect() },
+            Shape::Place { shape, at, rot } => {
+                Node::Place { child: Box::new(shape.compile()), rt: Mat3::from_euler_deg(arr3(*rot)).transpose(), t: arr3(*at) }
+            }
+            Shape::Offset { shape, d } => Node::Offset { child: Box::new(shape.compile()), d: *d },
+        };
+        Compiled { node, bounds }
+    }
+}
+
+impl Compiled {
+    pub fn sdf(&self, p: V3) -> f64 {
+        match &self.node {
+            Node::Box(h) => {
+                let q = v3(p.x.abs() - h.x, p.y.abs() - h.y, p.z.abs() - h.z);
+                v3(q.x.max(0.0), q.y.max(0.0), q.z.max(0.0)).len() + q.x.max(q.y).max(q.z).min(0.0)
+            }
+            Node::Cyl { r, h2 } => combine2((p.x * p.x + p.y * p.y).sqrt() - r, p.z.abs() - h2),
+            Node::Sphere(r) => p.len() - r,
+            Node::Prism { pts, h2 } => combine2(poly_sdf(pts, p.x, p.y), p.z.abs() - h2),
+            Node::Union(items) => {
+                let mut best = f64::INFINITY;
+                for it in items {
+                    if it.bounds.dist(p) >= best {
+                        continue;
+                    }
+                    best = best.min(it.sdf(p));
+                }
+                best
+            }
+            Node::Intersect(items) => items.iter().map(|i| i.sdf(p)).fold(f64::NEG_INFINITY, f64::max),
+            Node::Subtract { base, cuts } => {
+                let mut d = base.sdf(p);
+                for c in cuts {
+                    if c.bounds.dist(p) >= -d {
+                        continue;
+                    }
+                    d = d.max(-c.sdf(p));
+                }
+                d
+            }
+            Node::Place { child, rt, t } => child.sdf(rt.mul_v(p - *t)),
+            Node::Offset { child, d } => child.sdf(p) - d,
+        }
+    }
 }

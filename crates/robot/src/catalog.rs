@@ -308,32 +308,85 @@ pub fn find(id: &str) -> Option<CatalogEntry> {
     catalog().into_iter().find(|c| c.id == id)
 }
 
-/// Material densities in g/cm3.
-pub fn density(material: &str) -> Option<f64> {
-    Some(match material {
-        "pla" | "pla_st" => 1.24,
-        "petg" => 1.27,
-        "abs" => 1.04,
-        "pc" | "polycarbonate" => 1.2,
-        "nylon" | "taulman910" => 1.12,
-        "tpu" => 1.2,
-        "resin" => 1.15,
-        "cf_plate" | "carbon_fibre" => 1.55,
-        "aluminium" | "aluminum" => 2.7,
-        "steel" | "hardox" | "stainless" | "304" => 7.9,
-        "titanium" => 4.43,
-        "brass" => 8.5,
-        "copper" => 8.96,
-        "hdpe" => 0.95,
-        "uhmw" => 0.94,
-        "silicone" => 1.1,
-        "fr4" => 1.85,
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MatClass {
+    /// Extruded or resin printed plastic.
+    Printed,
+    /// Rigid sheet or machined plastic (HDPE, polypropylene, polycarbonate, UHMW).
+    Sheet,
+    /// Flexible elastomer (TPU, silicone, rubber).
+    Elastomer,
+    /// Carbon-fibre or glass laminate plate.
+    Laminate,
+    Metal,
+    /// Adhesive tapes, heat shrink, hook-and-loop: thin, glue the part, carry no load.
+    Tape,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Material {
+    pub density: f64,
+    pub class: MatClass,
+    /// Shatters or cracks under impact (a bad choice for weapons and armour).
+    pub brittle: bool,
+    /// Smallest wall that prints or machines reliably (mm); 0 when not applicable.
+    pub min_wall_mm: f64,
+}
+
+const fn mat(density: f64, class: MatClass, brittle: bool, min_wall_mm: f64) -> Material {
+    Material { density, class, brittle, min_wall_mm }
+}
+
+/// Look up a material by id. Ids: `pla`, `petg`, `abs`, `asa`, `nylon`, `pla_cf`, `petg_cf`, `pa_cf`,
+/// `tpu`, `tpu_85a`, `silicone`, `rubber`, `hdpe`, `pp`, `uhmw`, `pc`, `cf_plate`, `fr4`, `aluminium`,
+/// `steel`, `titanium`, `brass`, `copper`, `tape`, `double_sided_tape`, `heat_shrink`, `velcro`, `resin`.
+pub fn material(id: &str) -> Option<Material> {
+    use MatClass::*;
+    Some(match id {
+        "pla" | "pla_st" => mat(1.24, Printed, true, 0.9),
+        "petg" => mat(1.27, Printed, false, 0.9),
+        "abs" | "asa" => mat(1.05, Printed, false, 0.9),
+        "nylon" | "taulman910" | "pa12" => mat(1.12, Printed, false, 0.9),
+        "pla_cf" | "petg_cf" | "pa_cf" | "cf_filament" => mat(1.3, Printed, true, 1.0),
+        "pc" | "polycarbonate" => mat(1.2, Sheet, false, 0.5),
+        "resin" => mat(1.15, Printed, true, 0.8),
+        "tpu" | "tpu_95a" | "tpu_85a" => mat(1.2, Elastomer, false, 1.2),
+        "silicone" => mat(1.1, Elastomer, false, 1.0),
+        "rubber" | "lego_tyre" => mat(1.15, Elastomer, false, 0.8),
+        "hdpe" => mat(0.95, Sheet, false, 1.0),
+        "pp" | "polypropylene" => mat(0.91, Sheet, false, 1.0),
+        "uhmw" => mat(0.94, Sheet, false, 1.0),
+        "cf_plate" | "carbon_fibre" => mat(1.55, Laminate, true, 0.5),
+        "fr4" | "g10" => mat(1.85, Laminate, true, 0.5),
+        "aluminium" | "aluminum" => mat(2.7, Metal, false, 0.5),
+        "steel" | "hardox" | "stainless" | "304" => mat(7.9, Metal, false, 0.3),
+        "titanium" => mat(4.43, Metal, false, 0.4),
+        "brass" => mat(8.5, Metal, false, 0.3),
+        "copper" => mat(8.96, Metal, false, 0.2),
+        "tape" | "kapton" | "duct_tape" => mat(0.9, Tape, false, 0.0),
+        "double_sided_tape" | "foam_tape" => mat(0.5, Tape, false, 0.0),
+        "heat_shrink" => mat(1.2, Tape, false, 0.0),
+        "velcro" => mat(0.4, Tape, false, 0.0),
         _ => return None,
     })
 }
 
+/// Material densities in g/cm3.
+pub fn density(id: &str) -> Option<f64> {
+    material(id).map(|m| m.density)
+}
+
 pub fn is_printed(process: &str) -> bool {
     matches!(process, "fdm" | "resin")
+}
+
+/// Printed by process, or by material class when no process is given.
+pub fn part_is_printed(process: Option<&str>, material: Option<&str>) -> bool {
+    match process {
+        Some(p) => is_printed(p),
+        None => material.and_then(self::material).is_some_and(|m| m.class == MatClass::Printed),
+    }
 }
 
 /// ISO socket-head cap screw: (head diameter, head height, socket across flats, key size) by thread diameter.

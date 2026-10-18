@@ -5,13 +5,16 @@ use std::collections::{BTreeMap, HashMap};
 use crate::catalog::{self, CatalogEntry};
 use crate::math::{Aabb, Mat3, V3, Xform, v3};
 use crate::profile::Profile;
-use crate::sdf::Shape;
+use std::sync::Arc;
+
+use crate::sdf::{Compiled, Shape};
 use crate::spec::{Part, PartKind, Spec};
 
 #[derive(Clone, Debug)]
 pub struct RPart {
     pub part: Part,
     pub shape: Shape,
+    pub cs: Arc<Compiled>,
     pub cat: Option<CatalogEntry>,
 }
 
@@ -51,7 +54,8 @@ pub fn resolve(spec: Spec) -> Resolved {
             load_errors.push((p.id.clone(), format!("bad shape: {e}")));
             shape = Shape::boxed(0.1, 0.1, 0.1);
         }
-        parts.push(RPart { part: p.clone(), shape, cat });
+        let cs = Arc::new(shape.compile());
+        parts.push(RPart { part: p.clone(), shape, cs, cat });
     }
     Resolved { spec, profile, parts, load_errors }
 }
@@ -61,6 +65,7 @@ pub struct Body {
     pub id: String,
     pub kind: PartKind,
     pub shape: Shape,
+    pub cs: Arc<Compiled>,
     pub xf: Xform,
     pub aabb: Aabb,
     pub color: [u8; 3],
@@ -130,6 +135,7 @@ impl World {
                 id: rp.part.id.clone(),
                 kind: rp.part.kind,
                 shape: rp.shape.clone(),
+                cs: rp.cs.clone(),
                 xf,
                 aabb,
                 color,
@@ -146,10 +152,12 @@ impl World {
                 let dir = V3::from_arr(f.dir);
                 let xf = Xform { r: Mat3::align_z_to(dir), t: V3::from_arr(f.at) };
                 let aabb = shape.bounds().transformed(&xf);
+                let cs = Arc::new(shape.compile());
                 bodies.push(Body {
                     id: f.id.clone(),
                     kind: PartKind::Other,
                     shape,
+                    cs,
                     xf,
                     aabb,
                     color: [0xcc, 0xcc, 0xd0],
@@ -204,7 +212,7 @@ impl World {
     /// Signed distance of body `i` at world point `p`.
     pub fn sdf(&self, i: usize, p: V3) -> f64 {
         match self.bodies.get(i) {
-            Some(b) => b.shape.sdf(b.xf.inv_apply(p)),
+            Some(b) => b.cs.sdf(b.xf.inv_apply(p)),
             None => f64::INFINITY,
         }
     }
