@@ -28,6 +28,7 @@ fn load(path: &str) -> Result<Spec, String> {
 
 fn print_report(rep: &Report, full: bool) {
     out!("{}: {} blockers, {} warnings, {} checks passed. ok={}", rep.name, rep.summary.blockers, rep.summary.warnings, rep.summary.passed, rep.ok);
+    out!("check set revision {}", rep.checks_revision);
     let m = |k: &str| rep.metrics.get(k).copied();
     if let (Some(t), Some(lo), Some(hi)) = (m("mass_total_g"), m("mass_lo_g"), m("mass_hi_g")) {
         out!("mass {t:.1} g (range {lo:.1} to {hi:.1} g, limit {:.0})", m("mass_limit_g").unwrap_or(150.0));
@@ -58,6 +59,12 @@ fn print_report(rep: &Report, full: bool) {
     }
     if n == 0 {
         out!("nothing to fix.");
+    }
+    if !rep.not_checked.is_empty() {
+        out!("NOT CHECKED (a pass says nothing about these):");
+        for x in &rep.not_checked {
+            out!("  - {x}");
+        }
     }
 }
 

@@ -121,6 +121,12 @@ pub struct Report {
     pub routes: Vec<crate::checks::wiring::Route>,
     /// Disassembly order with the direction each part slides out.
     pub assembly: Vec<crate::checks::assembly::AssemblyStep>,
+    /// Checks that did not run or do not exist for this robot: a pass says nothing about these.
+    #[serde(default)]
+    pub not_checked: Vec<String>,
+    /// Version of the check set that produced this report; old reports and old binaries are stale.
+    #[serde(default)]
+    pub checks_revision: u32,
 }
 
 impl Report {

@@ -24,11 +24,11 @@ parts[], fasteners[], wires[], connections[], allow_overlap[], electronics{fails
   bearing, plate, fork, tyre, pulley, belt, shaft, pin, spring, other. The first `structure` part is the chassis root.
 - Bought parts use `catalog` (id from `robot catalog`): size, mass and ports come from there, give only `at` and `rot`.
 - Made parts need `shape`, `material` (`robot materials`) and `process` (fdm, resin, cnc, laser, waterjet, cast, bought).
-  Printed parts get mass = volume x density x `solid_fraction` (default 0.45, set it if your slicer infill is different).
+  Printed parts get mass = volume x density x `solid_fraction` (default 0.85 for printed parts, 1.0 otherwise; shells with 20-45% infill need it set explicitly; per-part mass shows as `part_mass_g.<id>` in metrics).
   Give `slicer_mass_g` or `scale_mass_g` when you have a real number; they narrow the mass uncertainty.
 - `retained`: how a part with no screw stays put (`tape`, `adhesive`, `press_fit`, `velcro`). Otherwise it must be captive in a pocket.
 - `fused_with`: printed as one piece with that part (same material, both printed). A wedge in PETG on a nylon shell is NOT fused.
-- Spinners: `weapon: {kind, motor, cells, reduction, spin_axis (local axis), locking_bar}` on the weapon part; the weapon motor,
+- Spinners: `weapon: {kind, motor, cells, reduction, spin_axis (3-element local axis array such as [0,0,1], not a letter), locking_bar}` on the weapon part; the weapon motor,
   the weapon and a `locking_bar` part must exist. Tip speed is limited to 600 mph.
 - Moving parts: `parent` plus `joint: {kind (revolute|prismatic), axis, pivot (parent frame), min, max, default}`; the verifier sweeps it.
 
@@ -74,3 +74,10 @@ robot's own motion or when inverted.
 - Keep a 0.2 to 0.5 mm gap around pockets (printing tolerance) but snug enough to capture parts.
 - Moving parts need at least 1 mm of running clearance. Wheels need walls cut away to slide on from outside.
 - Fix blockers first, then warnings. Re-run verify after every change; it takes a few seconds.
+
+## Rules the tool enforces that are easy to miss
+- Wires only route through `structure` parts. A port outside that volume gives "got within N mm" errors; make the holding part `structure`.
+- Catalog part ports and axes: `robot catalog <id>` lists port names; the weapon motor's `phases` port is on its local +z face and its shaft runs along local z.
+- Spinners: the disc must sit on a `shaft` part running through structure on BOTH sides (`spinner.bearing`); declaring `supported_both_ends` is checked, not trusted.
+- Always run the newest binary: `robot verify` prints `check set revision N`; rebuild if it is lower than the repo's `CHECKS_REVISION`.
+- The report ends with NOT CHECKED: those items were not judged, a pass says nothing about them.

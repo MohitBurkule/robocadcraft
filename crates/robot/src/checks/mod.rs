@@ -15,6 +15,7 @@ pub mod legal;
 pub mod mass;
 pub mod mfg;
 pub mod power;
+pub mod spinner;
 pub mod validity;
 pub mod wiring;
 
@@ -45,6 +46,9 @@ pub struct Ctx<'a> {
     pub captive: BTreeMap<String, Vec<String>>,
     pub assembly: Vec<assembly::AssemblyStep>,
 }
+
+/// Bumped whenever a check is added or changed; the CLI prints it so a stale binary is obvious.
+pub const CHECKS_REVISION: u32 = 6;
 
 pub fn verify(spec: Spec, opts: &Options) -> Report {
     let r = resolve(spec);
@@ -85,6 +89,7 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
             findings.extend(fasteners::run(&mut ctx));
             findings.extend(power::run(&mut ctx));
             findings.extend(mfg::run(&mut ctx));
+            findings.extend(spinner::run(&mut ctx));
             if opts.deep {
                 let t0 = std::time::Instant::now();
                 findings.extend(assembly::run(&mut ctx));
@@ -99,6 +104,8 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
     }
     rep.findings = findings;
     rep.metrics = metrics;
+    rep.checks_revision = CHECKS_REVISION;
+    rep.not_checked = spinner::not_checked(r, opts);
     rep.bench_checklist = crate::review::bench_checklist(r);
     rep.finish();
     rep

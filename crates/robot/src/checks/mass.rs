@@ -71,6 +71,7 @@ pub fn run(ctx: &mut Ctx) -> (Vec<MassLine>, Vec<Finding>) {
         let m = measure::moments(ctx.world, i, 0.4);
         com = com + m.centroid * grams;
         total += grams;
+        ctx.metrics.insert(format!("part_mass_g.{}", b.id), grams);
         lines.push(MassLine { id: b.id.clone(), kind, grams, tol_g: grams * tol, source: source.into() });
     }
     for id in &missing {
