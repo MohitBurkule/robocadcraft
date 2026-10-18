@@ -30,6 +30,11 @@ pub enum Shape {
     Sphere {
         radius: f64,
     },
+    /// Round tube of `radius` following a polyline (a wire).
+    Tube {
+        points: Vec<[f64; 3]>,
+        radius: f64,
+    },
     /// Polygon in XY extruded along Z (centred), counter-clockwise or clockwise.
     Prism {
         points: Vec<[f64; 2]>,
@@ -125,6 +130,17 @@ impl Shape {
                 pos("cylinder height", *height)?;
             }
             Shape::Sphere { radius } => pos("sphere radius", *radius)?,
+            Shape::Tube { points, radius } => {
+                pos("tube radius", *radius)?;
+                if points.is_empty() || points.len() > 4000 {
+                    return Err("tube needs 1 to 4000 points".into());
+                }
+                for q in points {
+                    if !q.iter().all(|x| x.is_finite()) {
+                        return Err("tube point must be finite".into());
+                    }
+                }
+            }
             Shape::Prism { points, height } => {
                 pos("prism height", *height)?;
                 if points.len() < 3 {
@@ -181,6 +197,7 @@ impl Shape {
                 combine2(d, h)
             }
             Shape::Sphere { radius } => p.len() - radius,
+            Shape::Tube { points, radius } => tube_sdf(points, p) - radius,
             Shape::Prism { points, height } => {
                 let d = poly_sdf(points, p.x, p.y);
                 let h = p.z.abs() - height * 0.5;
@@ -212,6 +229,7 @@ impl Shape {
             Shape::Box { size } => Aabb::from_center_half(V3::ZERO, arr3(*size) * 0.5),
             Shape::Cylinder { radius, height } => Aabb::from_center_half(V3::ZERO, v3(*radius, *radius, height * 0.5)),
             Shape::Sphere { radius } => Aabb::from_center_half(V3::ZERO, v3(*radius, *radius, *radius)),
+            Shape::Tube { points, radius } => points.iter().fold(Aabb::empty(), |b, q| b.include(arr3(*q))).grow(*radius),
             Shape::Prism { points, height } => {
                 let mut b = Aabb::empty();
                 for p in points {
@@ -271,6 +289,7 @@ fn mirror_shape(s: &Shape, axis: usize) -> Shape {
     };
     match s {
         Shape::Box { .. } | Shape::Cylinder { .. } | Shape::Sphere { .. } => s.clone(),
+        Shape::Tube { points, radius } => Shape::Tube { points: points.iter().map(|q| flip(*q)).collect(), radius: *radius },
         Shape::Prism { points, height } => {
             let pts = match axis {
                 0 => points.iter().map(|p| [-p[0], p[1]]).collect(),
@@ -314,6 +333,20 @@ pub fn euler_from_mat(m: &crate::math::Mat3) -> (f64, f64, f64) {
 }
 
 /// Fraction of a cubic voxel of edge `h` covered by a solid with signed distance `d` at its centre.
+/// Distance from `p` to a polyline.
+pub fn tube_sdf(points: &[[f64; 3]], p: V3) -> f64 {
+    let mut best = f64::INFINITY;
+    for (i, a) in points.iter().enumerate() {
+        let a = arr3(*a);
+        let b = points.get(i + 1).map(|b| arr3(*b)).unwrap_or(a);
+        let ab = b - a;
+        let l2 = ab.dot(ab);
+        let t = if l2 > 1e-12 { ((p - a).dot(ab) / l2).clamp(0.0, 1.0) } else { 0.0 };
+        best = best.min((p - (a + ab * t)).len());
+    }
+    best
+}
+
 pub fn coverage(d: f64, h: f64) -> f64 {
     (0.5 - d / h).clamp(0.0, 1.0)
 }
@@ -331,6 +364,7 @@ enum Node {
     Box(V3),
     Cyl { r: f64, h2: f64 },
     Sphere(f64),
+    Tube { pts: Vec<[f64; 3]>, r: f64 },
     Prism { pts: Vec<[f64; 2]>, h2: f64 },
     Union(Vec<Compiled>),
     Intersect(Vec<Compiled>),
@@ -346,6 +380,7 @@ impl Shape {
             Shape::Box { size } => Node::Box(arr3(*size) * 0.5),
             Shape::Cylinder { radius, height } => Node::Cyl { r: *radius, h2: height * 0.5 },
             Shape::Sphere { radius } => Node::Sphere(*radius),
+            Shape::Tube { points, radius } => Node::Tube { pts: points.clone(), r: *radius },
             Shape::Prism { points, height } => Node::Prism { pts: points.clone(), h2: height * 0.5 },
             Shape::Union { items } => Node::Union(items.iter().map(Shape::compile).collect()),
             Shape::Intersect { items } => Node::Intersect(items.iter().map(Shape::compile).collect()),
@@ -368,6 +403,7 @@ impl Compiled {
             }
             Node::Cyl { r, h2 } => combine2((p.x * p.x + p.y * p.y).sqrt() - r, p.z.abs() - h2),
             Node::Sphere(r) => p.len() - r,
+            Node::Tube { pts, r } => tube_sdf(pts, p) - r,
             Node::Prism { pts, h2 } => combine2(poly_sdf(pts, p.x, p.y), p.z.abs() - h2),
             Node::Union(items) => {
                 let mut best = f64::INFINITY;

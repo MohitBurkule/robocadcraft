@@ -40,6 +40,7 @@ pub struct Ctx<'a> {
     pub world: &'a World,
     pub opts: &'a Options,
     pub metrics: &'a mut BTreeMap<String, f64>,
+    pub routes: Vec<wiring::Route>,
 }
 
 pub fn verify(spec: Spec, opts: &Options) -> Report {
@@ -55,7 +56,7 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
     if valid {
         let world = World::start(r);
         {
-            let mut ctx = Ctx { r, world: &world, opts, metrics: &mut metrics };
+            let mut ctx = Ctx { r, world: &world, opts, metrics: &mut metrics, routes: Vec::new() };
             if opts.deep {
                 findings.extend(wiring::run(&mut ctx));
             }
@@ -73,6 +74,7 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
                 findings.extend(assembly::run(&mut ctx));
             }
             findings.extend(validity::claims(&mut ctx));
+            rep.routes = std::mem::take(&mut ctx.routes);
         }
     }
     rep.findings = findings;

@@ -209,6 +209,33 @@ impl World {
         self.index(id).and_then(|i| self.bodies.get(i))
     }
 
+    /// A copy of this world with each routed wire added as a tube body, for rendering and exports.
+    pub fn with_routes(&self, routes: &[crate::checks::wiring::Route]) -> World {
+        let mut w = self.clone();
+        for rt in routes {
+            let shape = Shape::Tube { points: rt.points.clone(), radius: rt.od_mm * 0.5 };
+            let color = match rt.kind.as_str() {
+                "power" => [0xd0, 0x20, 0x20],
+                "motor" => [0xe8, 0xb0, 0x20],
+                _ => [0x30, 0x80, 0xe0],
+            };
+            let id = format!("wire:{}", rt.id);
+            w.idx.insert(id.clone(), w.bodies.len());
+            w.bodies.push(Body {
+                id,
+                kind: PartKind::Other,
+                aabb: shape.bounds(),
+                cs: Arc::new(shape.compile()),
+                shape,
+                xf: Xform::IDENTITY,
+                color,
+                part_idx: None,
+                fastener: false,
+            });
+        }
+        w
+    }
+
     /// Signed distance of body `i` at world point `p`.
     pub fn sdf(&self, i: usize, p: V3) -> f64 {
         match self.bodies.get(i) {

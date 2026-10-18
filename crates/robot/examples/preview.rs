@@ -20,7 +20,7 @@ fn main() {
     }
     println!("summary {:?} ok={}", rep.summary, rep.ok);
     let r = resolve(spec);
-    let w = World::start(&r);
+    let w = World::start(&r).with_routes(&rep.routes);
     for v in std::env::args().skip(3) {
         let Some(view) = View::named(&v, 900) else { continue };
         let t = std::time::Instant::now();

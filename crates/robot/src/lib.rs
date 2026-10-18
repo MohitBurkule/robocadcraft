@@ -8,6 +8,7 @@
 
 pub mod catalog;
 pub mod checks;
+pub mod export;
 pub mod finding;
 pub mod math;
 pub mod measure;

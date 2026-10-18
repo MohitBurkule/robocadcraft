@@ -1,0 +1,608 @@
+{
+  "name": "Reference 2WD wedge",
+  "profile": "aws2025",
+  "ok": true,
+  "summary": {
+    "blockers": 0,
+    "warnings": 1,
+    "passed": 11,
+    "total": 12
+  },
+  "findings": [
+    {
+      "id": "validity.ok",
+      "group": "validity",
+      "severity": "info",
+      "pass": true,
+      "title": "Spec is well formed",
+      "message": "15 parts, 4 fasteners, 5 wires.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "wiring.route",
+      "group": "wiring",
+      "severity": "info",
+      "pass": true,
+      "title": "Every wire has a route",
+      "message": "5 wires routed as real-thickness tubes through free space, 258 mm in total, no collisions.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "mass.ok",
+      "group": "mass",
+      "severity": "info",
+      "pass": true,
+      "title": "Within the weight limit",
+      "message": "102.9 g (range 84.4 to 121.4 g) against the 150 g limit; 7.0 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.",
+      "expected": "<= 150 g",
+      "actual": "102.9 g",
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "interference.overlap",
+      "group": "interference",
+      "severity": "info",
+      "pass": true,
+      "title": "No parts collide",
+      "message": "31 touching or overlapping pairs checked; touching is allowed, overlap deeper than 0.08 mm is not.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "interference.sweep",
+      "group": "interference",
+      "severity": "info",
+      "pass": true,
+      "title": "No joints to sweep",
+      "message": "No part has a joint.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "retention.declared",
+      "group": "interference",
+      "severity": "info",
+      "pass": true,
+      "title": "Held by declared method",
+      "message": "`esc` is held by tape.",
+      "expected": null,
+      "actual": null,
+      "parts": [
+        "esc"
+      ],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "retention.declared",
+      "group": "interference",
+      "severity": "info",
+      "pass": true,
+      "title": "Held by declared method",
+      "message": "`rx` is held by tape.",
+      "expected": null,
+      "actual": null,
+      "parts": [
+        "rx"
+      ],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "retention.declared",
+      "group": "interference",
+      "severity": "info",
+      "pass": true,
+      "title": "Held by declared method",
+      "message": "`power_switch` is held by adhesive.",
+      "expected": null,
+      "actual": null,
+      "parts": [
+        "power_switch"
+      ],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "retention.captive",
+      "group": "interference",
+      "severity": "info",
+      "pass": true,
+      "title": "Every loose part is held",
+      "message": "6 parts checked, 3 held by a declared method, the rest captive in their pockets.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "connection.joined",
+      "group": "connections",
+      "severity": "info",
+      "pass": true,
+      "title": "Touching structural parts are joined",
+      "message": "2 touching pairs each have a screw, shared print, joint or declared connection.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "claim.holds",
+      "group": "claims",
+      "severity": "info",
+      "pass": true,
+      "title": "Claim matches the model",
+      "message": "\"weighs 150 g or less\" (mass_total_g <= 150)",
+      "expected": "mass_total_g <= 150",
+      "actual": "102.86",
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "claim.unknown_metric",
+      "group": "claims",
+      "severity": "warning",
+      "pass": false,
+      "title": "Claim cannot be checked",
+      "message": "claim `c_fit`: no measured metric `footprint_mm`",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    }
+  ],
+  "metrics": {
+    "com_x": -0.32805497322003396,
+    "com_y": 0.7111032130762829,
+    "com_z": -0.5093835224409988,
+    "mass_hi_g": 121.36995402116169,
+    "mass_limit_g": 150.0,
+    "mass_lo_g": 84.35726083852451,
+    "mass_total_g": 102.8636074298431,
+    "wire_length_mm": 257.5523165263877,
+    "wire_mass_g": 0.5658424394084737
+  },
+  "mass": [
+    {
+      "id": "chassis_bottom",
+      "kind": "structure",
+      "grams": 24.242663493691413,
+      "tol_g": 4.848532698738283,
+      "source": "computed"
+    },
+    {
+      "id": "chassis_top",
+      "kind": "structure",
+      "grams": 23.822550032639423,
+      "tol_g": 4.7645100065278845,
+      "source": "computed"
+    },
+    {
+      "id": "wedge",
+      "kind": "wedge",
+      "grams": 7.959490540164554,
+      "tol_g": 1.5918981080329109,
+      "source": "computed"
+    },
+    {
+      "id": "motor_l",
+      "kind": "motor",
+      "grams": 7.5,
+      "tol_g": 1.125,
+      "source": "catalog"
+    },
+    {
+      "id": "motor_r",
+      "kind": "motor",
+      "grams": 7.5,
+      "tol_g": 1.125,
+      "source": "catalog"
+    },
+    {
+      "id": "wheel_l",
+      "kind": "wheel",
+      "grams": 3.4,
+      "tol_g": 0.51,
+      "source": "catalog"
+    },
+    {
+      "id": "wheel_r",
+      "kind": "wheel",
+      "grams": 3.4,
+      "tol_g": 0.51,
+      "source": "catalog"
+    },
+    {
+      "id": "battery",
+      "kind": "battery",
+      "grams": 12.5,
+      "tol_g": 1.875,
+      "source": "catalog"
+    },
+    {
+      "id": "esc",
+      "kind": "esc",
+      "grams": 3.0,
+      "tol_g": 0.44999999999999996,
+      "source": "catalog"
+    },
+    {
+      "id": "rx",
+      "kind": "receiver",
+      "grams": 4.5,
+      "tol_g": 0.6749999999999999,
+      "source": "catalog"
+    },
+    {
+      "id": "power_switch",
+      "kind": "switch",
+      "grams": 0.5,
+      "tol_g": 0.075,
+      "source": "catalog"
+    },
+    {
+      "id": "insert_fl",
+      "kind": "insert",
+      "grams": 0.12,
+      "tol_g": 0.018,
+      "source": "catalog"
+    },
+    {
+      "id": "insert_fr",
+      "kind": "insert",
+      "grams": 0.12,
+      "tol_g": 0.018,
+      "source": "catalog"
+    },
+    {
+      "id": "insert_rl",
+      "kind": "insert",
+      "grams": 0.12,
+      "tol_g": 0.018,
+      "source": "catalog"
+    },
+    {
+      "id": "insert_rr",
+      "kind": "insert",
+      "grams": 0.12,
+      "tol_g": 0.018,
+      "source": "catalog"
+    },
+    {
+      "id": "bolt_fl",
+      "kind": "fastener",
+      "grams": 0.5732652309848004,
+      "tol_g": 0.028663261549240024,
+      "source": "fastener"
+    },
+    {
+      "id": "bolt_fr",
+      "kind": "fastener",
+      "grams": 0.5732652309848004,
+      "tol_g": 0.028663261549240024,
+      "source": "fastener"
+    },
+    {
+      "id": "bolt_rl",
+      "kind": "fastener",
+      "grams": 0.5732652309848006,
+      "tol_g": 0.028663261549240034,
+      "source": "fastener"
+    },
+    {
+      "id": "bolt_rr",
+      "kind": "fastener",
+      "grams": 0.5732652309848006,
+      "tol_g": 0.028663261549240034,
+      "source": "fastener"
+    },
+    {
+      "id": "wires",
+      "kind": "wire",
+      "grams": 0.5658424394084737,
+      "tol_g": 0.1697527318225421,
+      "source": "wire"
+    },
+    {
+      "id": "allowance",
+      "kind": "allowance",
+      "grams": 1.2,
+      "tol_g": 0.6,
+      "source": "declared"
+    }
+  ],
+  "bench_checklist": [],
+  "routes": [
+    {
+      "id": "w_bat_sw",
+      "awg": 26.0,
+      "kind": "power",
+      "od_mm": 1.3,
+      "length_mm": 100.24553560458187,
+      "points": [
+        [
+          0.0,
+          19.0,
+          0.0
+        ],
+        [
+          4.299999999999997,
+          18.299999999999997,
+          -0.10000000000000142
+        ],
+        [
+          15.099999999999994,
+          18.299999999999997,
+          -0.10000000000000142
+        ],
+        [
+          15.699999999999996,
+          17.699999999999996,
+          -0.10000000000000142
+        ],
+        [
+          15.699999999999996,
+          -1.5,
+          -0.10000000000000142
+        ],
+        [
+          8.5,
+          -7.5,
+          -0.10000000000000142
+        ],
+        [
+          3.6999999999999957,
+          -7.5,
+          -0.10000000000000142
+        ],
+        [
+          -2.3000000000000043,
+          -14.100000000000001,
+          2.8999999999999986
+        ],
+        [
+          -2.3000000000000043,
+          -25.5,
+          2.8999999999999986
+        ],
+        [
+          -2.8999999999999986,
+          -26.1,
+          3.5
+        ],
+        [
+          -8.300000000000004,
+          -32.7,
+          3.5
+        ],
+        [
+          -8.899999999999999,
+          -33.3,
+          4.099999999999998
+        ],
+        [
+          -20.900000000000002,
+          -33.3,
+          4.699999999999999
+        ],
+        [
+          -22.0,
+          -34.0,
+          5.3
+        ]
+      ]
+    },
+    {
+      "id": "w_sw_esc",
+      "awg": 26.0,
+      "kind": "power",
+      "od_mm": 1.3,
+      "length_mm": 21.388134094515152,
+      "points": [
+        [
+          -14.0,
+          -34.0,
+          5.3
+        ],
+        [
+          -11.899999999999999,
+          -33.9,
+          4.099999999999998
+        ],
+        [
+          -11.300000000000004,
+          -34.5,
+          3.5
+        ],
+        [
+          -4.700000000000003,
+          -35.1,
+          3.5
+        ],
+        [
+          0.0,
+          -37.5,
+          3.0
+        ]
+      ]
+    },
+    {
+      "id": "w_esc_ml",
+      "awg": 26.0,
+      "kind": "motor",
+      "od_mm": 1.3,
+      "length_mm": 26.224535381309416,
+      "points": [
+        [
+          8.0,
+          -31.5,
+          3.0
+        ],
+        [
+          3.6999999999999957,
+          -27.3,
+          3.5
+        ],
+        [
+          2.5,
+          -26.1,
+          3.5
+        ],
+        [
+          1.8999999999999986,
+          -25.5,
+          2.8999999999999986
+        ],
+        [
+          2.5,
+          -18.900000000000002,
+          2.3000000000000007
+        ],
+        [
+          4.899999999999999,
+          -16.5,
+          0.5
+        ],
+        [
+          5.549999999999997,
+          -16.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "id": "w_esc_mr",
+      "awg": 26.0,
+      "kind": "motor",
+      "od_mm": 1.3,
+      "length_mm": 28.172234537217594,
+      "points": [
+        [
+          -8.0,
+          -31.5,
+          3.0
+        ],
+        [
+          -5.300000000000004,
+          -31.5,
+          3.5
+        ],
+        [
+          -1.1000000000000014,
+          -26.1,
+          3.5
+        ],
+        [
+          -0.5,
+          -24.900000000000002,
+          2.8999999999999986
+        ],
+        [
+          -1.1000000000000014,
+          -23.1,
+          2.3000000000000007
+        ],
+        [
+          -1.7000000000000028,
+          -22.5,
+          1.6999999999999993
+        ],
+        [
+          -2.8999999999999986,
+          -18.3,
+          1.0999999999999979
+        ],
+        [
+          -5.549999999999997,
+          -16.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "id": "w_rx_esc",
+      "awg": 26.0,
+      "kind": "signal",
+      "od_mm": 1.3,
+      "length_mm": 81.52187690876363,
+      "points": [
+        [
+          0.0,
+          32.8,
+          0.0
+        ],
+        [
+          0.6999999999999957,
+          32.099999999999994,
+          2.3000000000000007
+        ],
+        [
+          1.2999999999999972,
+          31.5,
+          2.8999999999999986
+        ],
+        [
+          12.699999999999996,
+          19.5,
+          2.8999999999999986
+        ],
+        [
+          15.099999999999994,
+          18.299999999999997,
+          2.8999999999999986
+        ],
+        [
+          15.699999999999996,
+          17.699999999999996,
+          2.8999999999999986
+        ],
+        [
+          15.699999999999996,
+          -1.5,
+          2.8999999999999986
+        ],
+        [
+          8.5,
+          -7.5,
+          2.8999999999999986
+        ],
+        [
+          3.6999999999999957,
+          -7.5,
+          2.8999999999999986
+        ],
+        [
+          3.1000000000000014,
+          -8.100000000000001,
+          2.8999999999999986
+        ],
+        [
+          0.0,
+          -25.5,
+          3.0
+        ]
+      ]
+    }
+  ]
+}

@@ -117,6 +117,8 @@ pub struct Report {
     pub mass: Vec<MassLine>,
     /// Things to try on the bench that CAD cannot prove.
     pub bench_checklist: Vec<String>,
+    /// Routed wires, thickness included.
+    pub routes: Vec<crate::checks::wiring::Route>,
 }
 
 impl Report {

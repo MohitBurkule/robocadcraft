@@ -87,8 +87,7 @@ pub fn run(ctx: &mut Ctx) -> (Vec<MassLine>, Vec<Finding>) {
         );
     }
     // Wires and unmodelled bits.
-    let wire_len = ctx.metrics.get("wire_length_mm").copied().unwrap_or_else(|| super::wiring::estimate_length(ctx));
-    let wire_g = wire_len * 0.0022;
+    let wire_g = ctx.metrics.get("wire_mass_g").copied().unwrap_or_else(|| super::wiring::estimate_length(ctx) * 0.0022);
     if wire_g > 0.0 {
         lines.push(MassLine { id: "wires".into(), kind: "wire".into(), grams: wire_g, tol_g: wire_g * 0.3, source: "wire".into() });
         total += wire_g;
