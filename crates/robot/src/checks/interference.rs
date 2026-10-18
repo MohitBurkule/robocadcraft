@@ -77,7 +77,8 @@ pub fn run(ctx: &mut Ctx) -> Vec<Finding> {
                 continue;
             }
             checked += 1;
-            if let Some(o) = measure::overlap(w, i, j, 0.5)
+            if measure::overlap_exceeds(w, i, j, V3::ZERO, 0.5, allow)
+                && let Some(o) = measure::overlap(w, i, j, 0.5)
                 && o.depth > allow
             {
                 bad += 1;
@@ -112,7 +113,8 @@ pub fn run(ctx: &mut Ctx) -> Vec<Finding> {
         out.extend(joint_sweeps(ctx));
         out.extend(spin_sweeps(ctx));
     }
-    out.extend(captive(ctx));
+    let c = captive(ctx);
+    out.extend(c);
     out
 }
 
@@ -396,7 +398,7 @@ fn spin_sweeps(ctx: &Ctx) -> Vec<Finding> {
     out
 }
 
-fn captive(ctx: &Ctx) -> Vec<Finding> {
+fn captive(ctx: &mut Ctx) -> Vec<Finding> {
     let r = ctx.r;
     let w = ctx.world;
     let mut out = Vec::new();
@@ -411,9 +413,36 @@ fn captive(ctx: &Ctx) -> Vec<Finding> {
     ];
     let mut checked = 0;
     let mut loose_ok = 0;
+    let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for (i, b) in w.bodies.iter().enumerate() {
         let Some(rp) = b.part_idx.and_then(|k| r.parts.get(k)) else { continue };
         let p = &rp.part;
+        if matches!(p.kind, PartKind::Structure | PartKind::Wedge | PartKind::Armor | PartKind::Plate | PartKind::Fork) {
+            continue;
+        }
+        let mut free = Vec::new();
+        let mut blockers: Vec<String> = Vec::new();
+        for (name, d) in &dirs {
+            let mut blocked = false;
+            for (j, o) in w.bodies.iter().enumerate() {
+                if j == i || !o.aabb.overlaps(&b.aabb.grow(slop), 0.0) || allowed_depth(r, b, o) >= 1.0e3 {
+                    continue;
+                }
+                let allow = allowed_depth(r, b, o);
+                if measure::overlap_exceeds(w, i, j, *d * slop, 0.5, allow + 0.02) {
+                    blocked = true;
+                    if !o.fastener && !blockers.contains(&o.id) {
+                        blockers.push(o.id.clone());
+                    }
+                }
+            }
+            if !blocked {
+                free.push(*name);
+            }
+        }
+        if free.is_empty() {
+            map.insert(p.id.clone(), blockers);
+        }
         let must = matches!(p.kind, PartKind::Battery | PartKind::Motor | PartKind::WeaponMotor | PartKind::Servo);
         let should = matches!(
             p.kind,
@@ -439,18 +468,6 @@ fn captive(ctx: &Ctx) -> Vec<Finding> {
             out.push(Finding::note("retention.declared", G, "Held by declared method", format!("`{}` is held by {how}.", p.id)).on(&[&p.id]));
             continue;
         }
-        let mut free = Vec::new();
-        for (name, d) in &dirs {
-            let blocked = w.bodies.iter().enumerate().any(|(j, o)| {
-                j != i && o.aabb.overlaps(&b.aabb.grow(slop), 0.0) && allowed_depth(r, b, o) < 1.0e3 && {
-                    let allow = allowed_depth(r, b, o);
-                    measure::overlap_shifted(w, i, j, *d * slop, 0.5).is_some_and(|ov| ov.depth > allow + 0.02)
-                }
-            });
-            if !blocked {
-                free.push(*name);
-            }
-        }
         if free.is_empty() {
             continue;
         }
@@ -462,7 +479,8 @@ fn captive(ctx: &Ctx) -> Vec<Finding> {
                 .fix("Make the pocket snug on that side (0.2 to 0.5 mm gap), add a retaining rib or strap, or declare how it is held in `retained` (tape, adhesive, velcro, press_fit)."),
         );
     }
-    if checked > 0 && out.iter().all(|f| f.pass) {
+    ctx.captive = map;
+    if checked > 0 && out.iter().all(|f| f.pass || f.id == "retention.declared") {
         out.push(Finding::pass(
             "retention.captive",
             G,

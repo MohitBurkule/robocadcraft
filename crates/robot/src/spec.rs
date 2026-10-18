@@ -249,6 +249,10 @@ pub struct Connection {
     /// `screw`, `shaft`, `pin`, `press_fit`, `glue`, `tape`, `snap`, `interlock`, `velcro`, `none`.
     pub method: String,
     pub reason: String,
+    /// `press_fit`: designed interference in mm (0.05 to 0.4 for FDM).
+    pub interference_mm: Option<f64>,
+    /// `glue` or `tape` on a low-energy plastic (HDPE, PP, nylon) is only accepted with a mechanical key that holds without the adhesive.
+    pub mechanical_key: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]

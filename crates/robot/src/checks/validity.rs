@@ -170,7 +170,7 @@ pub fn claims(ctx: &mut Ctx) -> Vec<Finding> {
             out.push(Finding::fail(
                 "claim.unknown_metric",
                 "claims",
-                Severity::Warning,
+                Severity::Blocker,
                 "Claim cannot be checked",
                 format!("claim `{}`: no measured metric `{}`", c.id, c.metric),
             ));

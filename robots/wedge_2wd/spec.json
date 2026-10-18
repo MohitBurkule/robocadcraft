@@ -347,6 +347,68 @@
                   0.0,
                   0.0
                 ]
+              },
+              {
+                "type": "place",
+                "shape": {
+                  "type": "place",
+                  "shape": {
+                    "type": "cylinder",
+                    "radius": 3.0,
+                    "height": 10.0
+                  },
+                  "at": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rot": [
+                    -90.0,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "at": [
+                  17.0,
+                  31.0,
+                  -6.0
+                ],
+                "rot": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "type": "place",
+                "shape": {
+                  "type": "place",
+                  "shape": {
+                    "type": "cylinder",
+                    "radius": 3.0,
+                    "height": 10.0
+                  },
+                  "at": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rot": [
+                    -90.0,
+                    0.0,
+                    0.0
+                  ]
+                },
+                "at": [
+                  -17.0,
+                  31.0,
+                  -6.0
+                ],
+                "rot": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
               }
             ]
           },
@@ -773,6 +835,68 @@
           ]
         },
         "cut": [
+          {
+            "type": "place",
+            "shape": {
+              "type": "place",
+              "shape": {
+                "type": "cylinder",
+                "radius": 1.6,
+                "height": 3.6
+              },
+              "at": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                -90.0,
+                0.0,
+                0.0
+              ]
+            },
+            "at": [
+              17.0,
+              34.2,
+              -6.0
+            ],
+            "rot": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "type": "place",
+            "shape": {
+              "type": "place",
+              "shape": {
+                "type": "cylinder",
+                "radius": 1.6,
+                "height": 3.6
+              },
+              "at": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                -90.0,
+                0.0,
+                0.0
+              ]
+            },
+            "at": [
+              -17.0,
+              34.2,
+              -6.0
+            ],
+            "rot": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
           {
             "type": "place",
             "shape": {
@@ -1290,6 +1414,68 @@
                   -30.0,
                   -35.0,
                   5.0
+                ],
+                "rot": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ]
+              },
+              {
+                "type": "place",
+                "shape": {
+                  "type": "place",
+                  "shape": {
+                    "type": "cylinder",
+                    "radius": 3.0,
+                    "height": 10.0
+                  },
+                  "at": [
+                    0.0,
+                    0.0,
+                    -0.0
+                  ],
+                  "rot": [
+                    90.0,
+                    -0.0,
+                    0.0
+                  ]
+                },
+                "at": [
+                  17.0,
+                  31.0,
+                  6.0
+                ],
+                "rot": [
+                  0.0,
+                  -0.0,
+                  0.0
+                ]
+              },
+              {
+                "type": "place",
+                "shape": {
+                  "type": "place",
+                  "shape": {
+                    "type": "cylinder",
+                    "radius": 3.0,
+                    "height": 10.0
+                  },
+                  "at": [
+                    0.0,
+                    0.0,
+                    -0.0
+                  ],
+                  "rot": [
+                    90.0,
+                    -0.0,
+                    0.0
+                  ]
+                },
+                "at": [
+                  -17.0,
+                  31.0,
+                  6.0
                 ],
                 "rot": [
                   0.0,
@@ -1927,36 +2113,49 @@
       "id": "wedge",
       "kind": "wedge",
       "catalog": null,
-      "material": "petg",
+      "material": "petg_cf",
       "process": "fdm",
       "shape": {
-        "type": "union",
-        "items": [
-          {
-            "type": "place",
-            "shape": {
+        "type": "subtract",
+        "base": {
+          "type": "union",
+          "items": [
+            {
               "type": "place",
               "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.8344032242954436
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.810276063065886
+                    ],
+                    [
+                      36.0,
+                      0.13031538948610688
+                    ],
+                    [
+                      82.48384379119933,
+                      -11.459408547448007
+                    ],
+                    [
+                      82.0,
+                      -13.4
+                    ]
                   ],
-                  [
-                    36.0,
-                    -0.2819300622538492
-                  ],
-                  [
-                    82.38707503295947,
-                    -11.847526837958405
-                  ],
-                  [
-                    82.0,
-                    -13.4
-                  ]
+                  "height": 82.0
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
                 ],
-                "height": 82.0
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
               },
               "at": [
                 0.0,
@@ -1964,15 +2163,395 @@
                 0.0
               ],
               "rot": [
-                90.0,
                 0.0,
-                90.0
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "box",
+                "size": [
+                  82.0,
+                  2.4,
+                  9.65
+                ]
+              },
+              "at": [
+                0.0,
+                37.2,
+                -5.175
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.610276063065886
+                    ],
+                    [
+                      68.36334482597812,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -1.610276063065886
+                    ]
+                  ],
+                  "height": 1.2
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
+              },
+              "at": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.610276063065886
+                    ],
+                    [
+                      68.36334482597812,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -1.610276063065886
+                    ]
+                  ],
+                  "height": 1.2
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
+              },
+              "at": [
+                14.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.610276063065886
+                    ],
+                    [
+                      68.36334482597812,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -1.610276063065886
+                    ]
+                  ],
+                  "height": 1.2
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
+              },
+              "at": [
+                -14.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.610276063065886
+                    ],
+                    [
+                      68.36334482597812,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -1.610276063065886
+                    ]
+                  ],
+                  "height": 1.2
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
+              },
+              "at": [
+                28.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.610276063065886
+                    ],
+                    [
+                      68.36334482597812,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -1.610276063065886
+                    ]
+                  ],
+                  "height": 1.2
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
+              },
+              "at": [
+                -28.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.610276063065886
+                    ],
+                    [
+                      68.36334482597812,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -1.610276063065886
+                    ]
+                  ],
+                  "height": 1.2
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
+              },
+              "at": [
+                41.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "type": "place",
+              "shape": {
+                "type": "place",
+                "shape": {
+                  "type": "prism",
+                  "points": [
+                    [
+                      35.516156208800666,
+                      -1.610276063065886
+                    ],
+                    [
+                      68.36334482597812,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -10.0
+                    ],
+                    [
+                      36.0,
+                      -1.610276063065886
+                    ]
+                  ],
+                  "height": 1.2
+                },
+                "at": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "rot": [
+                  90.0,
+                  0.0,
+                  90.0
+                ]
+              },
+              "at": [
+                -41.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ]
+        },
+        "cut": [
+          {
+            "type": "place",
+            "shape": {
+              "type": "place",
+              "shape": {
+                "type": "cylinder",
+                "radius": 1.1,
+                "height": 4.0
+              },
+              "at": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rot": [
+                -90.0,
+                0.0,
+                0.0
               ]
             },
             "at": [
-              0.0,
-              0.0,
-              0.0
+              17.0,
+              37.2,
+              -6.0
             ],
             "rot": [
               0.0,
@@ -1985,26 +2564,9 @@
             "shape": {
               "type": "place",
               "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.6344032242954436
-                  ],
-                  [
-                    68.36334482597815,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -1.6344032242954436
-                  ]
-                ],
-                "height": 1.2
+                "type": "cylinder",
+                "radius": 1.1,
+                "height": 4.0
               },
               "at": [
                 0.0,
@@ -2012,15 +2574,15 @@
                 0.0
               ],
               "rot": [
-                90.0,
+                -90.0,
                 0.0,
-                90.0
+                0.0
               ]
             },
             "at": [
-              0.0,
-              0.0,
-              0.0
+              -17.0,
+              37.2,
+              -6.0
             ],
             "rot": [
               0.0,
@@ -2031,283 +2593,16 @@
           {
             "type": "place",
             "shape": {
-              "type": "place",
-              "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.6344032242954436
-                  ],
-                  [
-                    68.36334482597815,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -1.6344032242954436
-                  ]
-                ],
-                "height": 1.2
-              },
-              "at": [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "rot": [
-                90.0,
-                0.0,
-                90.0
+              "type": "box",
+              "size": [
+                100.0,
+                10.0,
+                40.0
               ]
             },
             "at": [
-              14.0,
               0.0,
-              0.0
-            ],
-            "rot": [
-              0.0,
-              0.0,
-              0.0
-            ]
-          },
-          {
-            "type": "place",
-            "shape": {
-              "type": "place",
-              "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.6344032242954436
-                  ],
-                  [
-                    68.36334482597815,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -1.6344032242954436
-                  ]
-                ],
-                "height": 1.2
-              },
-              "at": [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "rot": [
-                90.0,
-                0.0,
-                90.0
-              ]
-            },
-            "at": [
-              -14.0,
-              0.0,
-              0.0
-            ],
-            "rot": [
-              0.0,
-              0.0,
-              0.0
-            ]
-          },
-          {
-            "type": "place",
-            "shape": {
-              "type": "place",
-              "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.6344032242954436
-                  ],
-                  [
-                    68.36334482597815,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -1.6344032242954436
-                  ]
-                ],
-                "height": 1.2
-              },
-              "at": [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "rot": [
-                90.0,
-                0.0,
-                90.0
-              ]
-            },
-            "at": [
-              28.0,
-              0.0,
-              0.0
-            ],
-            "rot": [
-              0.0,
-              0.0,
-              0.0
-            ]
-          },
-          {
-            "type": "place",
-            "shape": {
-              "type": "place",
-              "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.6344032242954436
-                  ],
-                  [
-                    68.36334482597815,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -1.6344032242954436
-                  ]
-                ],
-                "height": 1.2
-              },
-              "at": [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "rot": [
-                90.0,
-                0.0,
-                90.0
-              ]
-            },
-            "at": [
-              -28.0,
-              0.0,
-              0.0
-            ],
-            "rot": [
-              0.0,
-              0.0,
-              0.0
-            ]
-          },
-          {
-            "type": "place",
-            "shape": {
-              "type": "place",
-              "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.6344032242954436
-                  ],
-                  [
-                    68.36334482597815,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -1.6344032242954436
-                  ]
-                ],
-                "height": 1.2
-              },
-              "at": [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "rot": [
-                90.0,
-                0.0,
-                90.0
-              ]
-            },
-            "at": [
-              41.0,
-              0.0,
-              0.0
-            ],
-            "rot": [
-              0.0,
-              0.0,
-              0.0
-            ]
-          },
-          {
-            "type": "place",
-            "shape": {
-              "type": "place",
-              "shape": {
-                "type": "prism",
-                "points": [
-                  [
-                    35.612924967040534,
-                    -1.6344032242954436
-                  ],
-                  [
-                    68.36334482597815,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -10.0
-                  ],
-                  [
-                    36.0,
-                    -1.6344032242954436
-                  ]
-                ],
-                "height": 1.2
-              },
-              "at": [
-                0.0,
-                0.0,
-                0.0
-              ],
-              "rot": [
-                90.0,
-                0.0,
-                90.0
-              ]
-            },
-            "at": [
-              -41.0,
-              0.0,
+              31.0,
               0.0
             ],
             "rot": [
@@ -2681,6 +2976,88 @@
       "ports": {}
     },
     {
+      "id": "insert_wl",
+      "kind": "insert",
+      "catalog": "heatset_m2",
+      "material": null,
+      "process": null,
+      "shape": null,
+      "at": [
+        17.0,
+        34.3,
+        -6.0
+      ],
+      "rot": [
+        90.0,
+        0.0,
+        0.0
+      ],
+      "parent": null,
+      "joint": null,
+      "mass_g": null,
+      "slicer_mass_g": null,
+      "scale_mass_g": null,
+      "solid_fraction": null,
+      "color": null,
+      "label": null,
+      "marked": false,
+      "tool_free": false,
+      "sharp": false,
+      "cover": null,
+      "retained": "press_fit",
+      "fused_with": null,
+      "weapon": null,
+      "tensioner": null,
+      "belt": null,
+      "tyre_of": null,
+      "no_tyre_reason": null,
+      "actuation": null,
+      "tethered": false,
+      "actuated_by": null,
+      "ports": {}
+    },
+    {
+      "id": "insert_wr",
+      "kind": "insert",
+      "catalog": "heatset_m2",
+      "material": null,
+      "process": null,
+      "shape": null,
+      "at": [
+        -17.0,
+        34.3,
+        -6.0
+      ],
+      "rot": [
+        90.0,
+        0.0,
+        0.0
+      ],
+      "parent": null,
+      "joint": null,
+      "mass_g": null,
+      "slicer_mass_g": null,
+      "scale_mass_g": null,
+      "solid_fraction": null,
+      "color": null,
+      "label": null,
+      "marked": false,
+      "tool_free": false,
+      "sharp": false,
+      "cover": null,
+      "retained": "press_fit",
+      "fused_with": null,
+      "weapon": null,
+      "tensioner": null,
+      "belt": null,
+      "tyre_of": null,
+      "no_tyre_reason": null,
+      "actuation": null,
+      "tethered": false,
+      "actuated_by": null,
+      "ports": {}
+    },
+    {
       "id": "insert_fl",
       "kind": "insert",
       "catalog": "heatset_m2",
@@ -2847,6 +3224,48 @@
   ],
   "fasteners": [
     {
+      "id": "bolt_wl",
+      "designation": "M2x6",
+      "at": [
+        17.0,
+        38.4,
+        -6.0
+      ],
+      "dir": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "through": [
+        "wedge"
+      ],
+      "threads_into": "insert_wl",
+      "tool": "hex1.5",
+      "removable": true,
+      "head": "socket"
+    },
+    {
+      "id": "bolt_wr",
+      "designation": "M2x6",
+      "at": [
+        -17.0,
+        38.4,
+        -6.0
+      ],
+      "dir": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "through": [
+        "wedge"
+      ],
+      "threads_into": "insert_wr",
+      "tool": "hex1.5",
+      "removable": true,
+      "head": "socket"
+    },
+    {
       "id": "bolt_fl",
       "designation": "M2x16",
       "at": [
@@ -2984,20 +3403,23 @@
     "cells": 2.0
   },
   "can_run_inverted": false,
-  "allow_overlap": [
-    {
-      "a": "wedge",
-      "b": "chassis_bottom",
-      "max_depth_mm": 0.3,
-      "reason": "glue line"
-    }
-  ],
+  "allow_overlap": [],
   "connections": [
     {
-      "a": "wedge",
-      "b": "chassis_bottom",
-      "method": "glue",
-      "reason": "PETG wedge epoxied along the full 84 mm front edge of the nylon shell; nylon needs a roughened surface and epoxy, bolts into the wedge are the upgrade"
+      "a": "motor_l",
+      "b": "wheel_l",
+      "method": "press_fit",
+      "reason": "Printed wheel hub pressed onto the 3 mm D-shaft of the N10 motor; drive torque is low so a 0.1 mm interference plus a drop of retainer holds it",
+      "interference_mm": 0.1,
+      "mechanical_key": false
+    },
+    {
+      "a": "motor_r",
+      "b": "wheel_r",
+      "method": "press_fit",
+      "reason": "Printed wheel hub pressed onto the 3 mm D-shaft of the N10 motor; drive torque is low so a 0.1 mm interference plus a drop of retainer holds it",
+      "interference_mm": 0.1,
+      "mechanical_key": false
     }
   ],
   "claims": [

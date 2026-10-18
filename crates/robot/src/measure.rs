@@ -143,6 +143,56 @@ pub fn overlap_shifted(world: &World, a: usize, b: usize, shift: V3, coarse: f64
     Some(Overlap { depth, at, volume: vol })
 }
 
+/// True when `a` shifted by `shift` penetrates `b` deeper than `thresh` mm. Cheaper than `overlap_shifted`: it stops at the
+/// first proof and refines only the few most promising cells.
+pub fn overlap_exceeds(world: &World, a: usize, b: usize, shift: V3, coarse: f64, thresh: f64) -> bool {
+    let (Some(ba), Some(bb)) = (world.bodies.get(a), world.bodies.get(b)) else { return false };
+    let abox = Aabb { min: ba.aabb.min + shift, max: ba.aabb.max + shift };
+    let ib = abox.intersect(&bb.aabb);
+    if ib.is_empty() {
+        return false;
+    }
+    let ib = ib.grow(coarse * 0.5);
+    let c = step_for(&ib, coarse);
+    let (nx, ny, nz) =
+        (((ib.max.x - ib.min.x) / c).ceil() as i64, ((ib.max.y - ib.min.y) / c).ceil() as i64, ((ib.max.z - ib.min.z) / c).ceil() as i64);
+    let mut cands: Vec<(f64, V3)> = Vec::new();
+    for iz in 0..nz.max(1) {
+        for iy in 0..ny.max(1) {
+            for ix in 0..nx.max(1) {
+                let p = v3(ib.min.x + (ix as f64 + 0.5) * c, ib.min.y + (iy as f64 + 0.5) * c, ib.min.z + (iz as f64 + 0.5) * c);
+                let da = world.sdf(a, p - shift);
+                if da >= c {
+                    continue;
+                }
+                let m = da.max(world.sdf(b, p));
+                if -m > thresh {
+                    return true;
+                }
+                if m < c {
+                    cands.push((m, p));
+                }
+            }
+        }
+    }
+    cands.sort_by(|x, y| x.0.partial_cmp(&y.0).unwrap_or(std::cmp::Ordering::Equal));
+    cands.truncate(500);
+    let q = c / 4.0;
+    for (_, p) in &cands {
+        for dz in -2..=2 {
+            for dy in -2..=2 {
+                for dx in -2..=2 {
+                    let pp = *p + v3(dx as f64 * q, dy as f64 * q, dz as f64 * q);
+                    if -(world.sdf(a, pp - shift).max(world.sdf(b, pp))) > thresh {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    false
+}
+
 pub fn overlap(world: &World, a: usize, b: usize, coarse: f64) -> Option<Overlap> {
     overlap_shifted(world, a, b, V3::ZERO, coarse)
 }

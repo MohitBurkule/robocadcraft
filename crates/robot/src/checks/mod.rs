@@ -41,6 +41,8 @@ pub struct Ctx<'a> {
     pub opts: &'a Options,
     pub metrics: &'a mut BTreeMap<String, f64>,
     pub routes: Vec<wiring::Route>,
+    /// Parts that cannot move in any direction, with the parts that block them (filled by `interference`).
+    pub captive: BTreeMap<String, Vec<String>>,
 }
 
 pub fn verify(spec: Spec, opts: &Options) -> Report {
@@ -56,15 +58,27 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
     if valid {
         let world = World::start(r);
         {
-            let mut ctx = Ctx { r, world: &world, opts, metrics: &mut metrics, routes: Vec::new() };
+            let mut ctx = Ctx { r, world: &world, opts, metrics: &mut metrics, routes: Vec::new(), captive: BTreeMap::new() };
             if opts.deep {
+                let t0 = std::time::Instant::now();
                 findings.extend(wiring::run(&mut ctx));
+                if std::env::var("ROBOT_TIMING").is_ok() {
+                    eprintln!("wiring {:?}", t0.elapsed());
+                }
             }
             let (mass_lines, mut f) = mass::run(&mut ctx);
             rep.mass = mass_lines;
             findings.append(&mut f);
+            let t0 = std::time::Instant::now();
             findings.extend(interference::run(&mut ctx));
+            if std::env::var("ROBOT_TIMING").is_ok() {
+                eprintln!("interference {:?}", t0.elapsed());
+            }
+            let t0 = std::time::Instant::now();
             findings.extend(connections::run(&mut ctx));
+            if std::env::var("ROBOT_TIMING").is_ok() {
+                eprintln!("connections {:?}", t0.elapsed());
+            }
             findings.extend(ground::run(&mut ctx));
             findings.extend(legal::run(&mut ctx));
             findings.extend(fasteners::run(&mut ctx));

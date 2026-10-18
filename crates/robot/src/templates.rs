@@ -8,6 +8,8 @@ fn outline(xh: f64, y0: f64, y1: f64, ch: f64) -> Vec<[f64; 2]> {
 }
 
 /// A box cut that starts `depth` below the parting plane (z = 0) and reaches 0.5 mm above it.
+const WEDGE_BOLT_X: f64 = 17.0;
+
 fn cut(cx: f64, cy: f64, sx: f64, sy: f64, depth: f64) -> Shape {
     Shape::boxed(sx, sy, depth + 0.5).at(cx, cy, -depth / 2.0 + 0.25)
 }
@@ -71,19 +73,26 @@ pub fn wedge_2wd() -> Spec {
     for (_, x, y) in bolts {
         blocks.push(Shape::cyl(4.0, hh).at(x, y, -hh / 2.0));
     }
+    // Wedge mount bosses on the front wall.
+    for s in [1.0, -1.0] {
+        blocks.push(Shape::cyl_y(3.0, 10.0).at(s * WEDGE_BOLT_X, 31.0, -6.0));
+    }
     let mut base_blocks = vec![shell];
     base_blocks.extend(blocks);
     let body = Shape::union(base_blocks).minus(pockets);
 
     // Bottom shell: heat-set insert seats under each bolt.
     let mut bottom_cuts = Vec::new();
+    for s in [1.0, -1.0] {
+        bottom_cuts.push(Shape::cyl_y(1.6, 3.6).at(s * WEDGE_BOLT_X, 34.2, -6.0));
+    }
     for (_, x, y) in bolts {
         bottom_cuts.push(Shape::cyl(1.1, 5.9).at(x, y, -2.45));
         bottom_cuts.push(Shape::cyl(1.6, 3.0).at(x, y, -6.7));
     }
     // Wedge: thin sloped plate on triangular ribs, printed with the bottom shell.
     let ang = 14.0_f64.to_radians();
-    let (t, tip_y, tip_z) = (1.6, y1 + 46.0, -13.4);
+    let (t, tip_y, tip_z) = (2.0, y1 + 46.0, -13.4);
     let (sn, cs) = (ang.sin(), ang.cos());
     let b1 = [tip_y, tip_z];
     let t1 = [tip_y + t * sn, tip_z + t * cs];
@@ -94,6 +103,8 @@ pub fn wedge_2wd() -> Spec {
     let plate = to_x(Shape::Prism { points: vec![b0, t0, t1, b1], height: 2.0 * (xh - 1.0) }, 0.0);
     let rib_y_end = b0[0] + (b0[1] + 10.0) / ang.tan();
     let mut wedge_items = vec![plate];
+    // Back plate against the chassis front face, bolted to the front bosses.
+    wedge_items.push(Shape::boxed(2.0 * (xh - 1.0), 2.4, 9.65).at(0.0, y1 + 1.2, -5.175));
     for x in [0.0, 14.0, -14.0, 28.0, -28.0, 41.0, -41.0] {
         let rib = Shape::Prism { points: vec![[b0[0], b0[1] + 0.2], [rib_y_end, -10.0 + 0.0], [y1, -10.0], [y1, b0[1] + 0.2]], height: 1.2 };
         wedge_items.push(to_x(rib, x));
@@ -118,8 +129,12 @@ pub fn wedge_2wd() -> Spec {
     chassis_top.color = Some("#3a3e46".into());
 
     let mut wedge = part("wedge", PartKind::Wedge);
-    wedge.shape = Some(Shape::union(wedge_items));
-    wedge.material = Some("petg".into());
+    let wedge_holes: Vec<Shape> = [1.0, -1.0].iter().map(|s| Shape::cyl_y(1.1, 4.0).at(s * WEDGE_BOLT_X, y1 + 1.2, -6.0)).collect();
+    let mut wedge_cuts = wedge_holes;
+    // Nothing of the wedge goes behind the chassis front face.
+    wedge_cuts.push(Shape::boxed(100.0, 10.0, 40.0).at(0.0, y1 - 5.0, 0.0));
+    wedge.shape = Some(Shape::union(wedge_items).minus(wedge_cuts));
+    wedge.material = Some("petg_cf".into());
     wedge.process = Some("fdm".into());
     wedge.color = Some("#ff6a1a".into());
 
@@ -148,6 +163,23 @@ pub fn wedge_2wd() -> Spec {
     parts.push(sw);
 
     let mut fasteners = Vec::new();
+    for (tag, s) in [("wl", 1.0), ("wr", -1.0)] {
+        let mut ins = cat(&format!("insert_{tag}"), PartKind::Insert, "heatset_m2", [s * WEDGE_BOLT_X, 34.3, -6.0]);
+        ins.rot = [90.0, 0.0, 0.0];
+        ins.retained = Some("press_fit".into());
+        parts.push(ins);
+        fasteners.push(Fastener {
+            id: format!("bolt_{tag}"),
+            designation: "M2x6".into(),
+            at: [s * WEDGE_BOLT_X, y1 + 2.4, -6.0],
+            dir: [0.0, -1.0, 0.0],
+            through: vec!["wedge".into()],
+            threads_into: Some(format!("insert_{tag}")),
+            tool: Some("hex1.5".into()),
+            removable: true,
+            head: Some("socket".into()),
+        });
+    }
     for (tag, x, y) in bolts {
         let mut ins = cat(&format!("insert_{tag}"), PartKind::Insert, "heatset_m2", [x, y, -6.7]);
         ins.retained = Some("press_fit".into());
@@ -188,13 +220,24 @@ pub fn wedge_2wd() -> Spec {
         fasteners,
         wires,
         electronics: Electronics { failsafe: true, weapon_remote_disable: false, radio: Some("2.45 GHz".into()), cells: Some(2.0) },
-        connections: vec![Connection {
-            a: "wedge".into(),
-            b: "chassis_bottom".into(),
-            method: "glue".into(),
-            reason: "PETG wedge epoxied along the full 84 mm front edge of the nylon shell; nylon needs a roughened surface and epoxy, bolts into the wedge are the upgrade".into(),
-        }],
-        allow_overlap: vec![AllowOverlap { a: "wedge".into(), b: "chassis_bottom".into(), max_depth_mm: Some(0.3), reason: "glue line".into() }],
+        connections: vec![
+            Connection {
+                a: "motor_l".into(),
+                b: "wheel_l".into(),
+                method: "press_fit".into(),
+                reason: "Printed wheel hub pressed onto the 3 mm D-shaft of the N10 motor; drive torque is low so a 0.1 mm interference plus a drop of retainer holds it".into(),
+                interference_mm: Some(0.1),
+                ..Connection::default()
+            },
+            Connection {
+                a: "motor_r".into(),
+                b: "wheel_r".into(),
+                method: "press_fit".into(),
+                reason: "Printed wheel hub pressed onto the 3 mm D-shaft of the N10 motor; drive torque is low so a 0.1 mm interference plus a drop of retainer holds it".into(),
+                interference_mm: Some(0.1),
+                ..Connection::default()
+            },
+        ],
         claims: vec![
             Claim { id: "c_mass".into(), text: "weighs 150 g or less".into(), metric: "mass_total_g".into(), op: "<=".into(), value: 150.0 },
             Claim { id: "c_fit".into(), text: "fits the 150 mm square".into(), metric: "footprint_mm".into(), op: "<=".into(), value: 150.0 },

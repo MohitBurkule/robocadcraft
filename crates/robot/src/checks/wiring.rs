@@ -6,8 +6,10 @@ use std::collections::{BinaryHeap, HashMap};
 use serde::{Deserialize, Serialize};
 
 use crate::finding::{Finding, Severity};
+use crate::math::Aabb;
 use crate::math::{V3, v3};
 use crate::sdf::tube_sdf;
+use crate::spec::PartKind;
 use crate::world::World;
 
 use super::Ctx;
@@ -153,6 +155,14 @@ impl<'a> Router<'a> {
         let size = b.size();
         let n = [(size.x / CELL).ceil() as usize + 1, (size.y / CELL).ceil() as usize + 1, (size.z / CELL).ceil() as usize + 1];
         let total = n[0].saturating_mul(n[1]).saturating_mul(n[2]).min(60_000_000);
+        // Wires stay inside the chassis and out of anything that spins.
+        let interior = world.bodies.iter().filter(|bd| bd.kind == PartKind::Structure).fold(Aabb::empty(), |a, bd| a.union(&bd.aabb)).grow(-0.4);
+        let keepout: Vec<Aabb> = world
+            .bodies
+            .iter()
+            .filter(|bd| matches!(bd.kind, PartKind::Wheel | PartKind::Weapon | PartKind::Pulley | PartKind::Belt))
+            .map(|bd| bd.aabb.grow(0.6))
+            .collect();
         let mut grid = Grid { min: b.min, n, dist: vec![0.0; total] };
         // Occupancy: 0 where solid, large where free; then distances to the nearest solid cell.
         let big = 1.0e5_f32;
@@ -160,7 +170,9 @@ impl<'a> Router<'a> {
             for iy in 0..n[1] {
                 for ix in 0..n[0] {
                     let p = grid.centre([ix as i64, iy as i64, iz as i64]);
-                    let solid = world.bodies.iter().enumerate().any(|(i, bd)| bd.aabb.contains(p) && world.sdf(i, p) < 0.0);
+                    let outside = !interior.contains(p);
+                    let swept = keepout.iter().any(|k| k.contains(p));
+                    let solid = outside || swept || world.bodies.iter().enumerate().any(|(i, bd)| bd.aabb.contains(p) && world.sdf(i, p) < 0.0);
                     if let Some(i) = grid.idx([ix as i64, iy as i64, iz as i64])
                         && let Some(slot) = grid.dist.get_mut(i)
                     {

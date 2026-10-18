@@ -4,9 +4,9 @@
   "ok": true,
   "summary": {
     "blockers": 0,
-    "warnings": 1,
-    "passed": 11,
-    "total": 12
+    "warnings": 0,
+    "passed": 13,
+    "total": 13
   },
   "findings": [
     {
@@ -15,7 +15,7 @@
       "severity": "info",
       "pass": true,
       "title": "Spec is well formed",
-      "message": "15 parts, 4 fasteners, 5 wires.",
+      "message": "17 parts, 6 fasteners, 5 wires.",
       "expected": null,
       "actual": null,
       "parts": [],
@@ -41,9 +41,9 @@
       "severity": "info",
       "pass": true,
       "title": "Within the weight limit",
-      "message": "102.9 g (range 84.4 to 121.4 g) against the 150 g limit; 7.0 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.",
+      "message": "107.9 g (range 88.5 to 127.4 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.",
       "expected": "<= 150 g",
-      "actual": "102.9 g",
+      "actual": "107.9 g",
       "parts": [],
       "at": null,
       "fix": null
@@ -54,7 +54,7 @@
       "severity": "info",
       "pass": true,
       "title": "No parts collide",
-      "message": "31 touching or overlapping pairs checked; touching is allowed, overlap deeper than 0.08 mm is not.",
+      "message": "40 touching or overlapping pairs checked; touching is allowed, overlap deeper than 0.08 mm is not.",
       "expected": null,
       "actual": null,
       "parts": [],
@@ -137,8 +137,21 @@
       "group": "connections",
       "severity": "info",
       "pass": true,
-      "title": "Touching structural parts are joined",
-      "message": "2 touching pairs each have a screw, shared print, joint or declared connection.",
+      "title": "Every part is attached",
+      "message": "All 17 parts lead back to the chassis through screws, shared prints, captive pockets, joints or declared connections.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "legal.footprint",
+      "group": "legal",
+      "severity": "info",
+      "pass": true,
+      "title": "Fits the square",
+      "message": "Fits a 122.5 mm square (limit 150 mm).",
       "expected": null,
       "actual": null,
       "parts": [],
@@ -153,33 +166,34 @@
       "title": "Claim matches the model",
       "message": "\"weighs 150 g or less\" (mass_total_g <= 150)",
       "expected": "mass_total_g <= 150",
-      "actual": "102.86",
+      "actual": "107.95",
       "parts": [],
       "at": null,
       "fix": null
     },
     {
-      "id": "claim.unknown_metric",
+      "id": "claim.holds",
       "group": "claims",
-      "severity": "warning",
-      "pass": false,
-      "title": "Claim cannot be checked",
-      "message": "claim `c_fit`: no measured metric `footprint_mm`",
-      "expected": null,
-      "actual": null,
+      "severity": "info",
+      "pass": true,
+      "title": "Claim matches the model",
+      "message": "\"fits the 150 mm square\" (footprint_mm <= 150)",
+      "expected": "footprint_mm <= 150",
+      "actual": "122.48",
       "parts": [],
       "at": null,
       "fix": null
     }
   ],
   "metrics": {
-    "com_x": -0.32805497322003396,
-    "com_y": 0.7111032130762829,
-    "com_z": -0.5093835224409988,
-    "mass_hi_g": 121.36995402116169,
+    "com_x": -0.31235237703569924,
+    "com_y": 2.7899704544344397,
+    "com_z": -0.7261355942672246,
+    "footprint_mm": 122.48384379119933,
+    "mass_hi_g": 127.36300353458515,
     "mass_limit_g": 150.0,
-    "mass_lo_g": 84.35726083852451,
-    "mass_total_g": 102.8636074298431,
+    "mass_lo_g": 88.53546611412003,
+    "mass_total_g": 107.94923482435259,
     "wire_length_mm": 257.5523165263877,
     "wire_mass_g": 0.5658424394084737
   },
@@ -187,22 +201,22 @@
     {
       "id": "chassis_bottom",
       "kind": "structure",
-      "grams": 24.242663493691413,
-      "tol_g": 4.848532698738283,
+      "grams": 24.61718796568001,
+      "tol_g": 4.923437593136002,
       "source": "computed"
     },
     {
       "id": "chassis_top",
       "kind": "structure",
-      "grams": 23.822550032639423,
-      "tol_g": 4.7645100065278845,
+      "grams": 24.246287017652183,
+      "tol_g": 4.849257403530437,
       "source": "computed"
     },
     {
       "id": "wedge",
       "kind": "wedge",
-      "grams": 7.959490540164554,
-      "tol_g": 1.5918981080329109,
+      "grams": 11.355500744419855,
+      "tol_g": 2.271100148883971,
       "source": "computed"
     },
     {
@@ -262,6 +276,20 @@
       "source": "catalog"
     },
     {
+      "id": "insert_wl",
+      "kind": "insert",
+      "grams": 0.12,
+      "tol_g": 0.018,
+      "source": "catalog"
+    },
+    {
+      "id": "insert_wr",
+      "kind": "insert",
+      "grams": 0.12,
+      "tol_g": 0.018,
+      "source": "catalog"
+    },
+    {
       "id": "insert_fl",
       "kind": "insert",
       "grams": 0.12,
@@ -288,6 +316,20 @@
       "grams": 0.12,
       "tol_g": 0.018,
       "source": "catalog"
+    },
+    {
+      "id": "bolt_wl",
+      "kind": "fastener",
+      "grams": 0.3256778666264044,
+      "tol_g": 0.016283893331320222,
+      "source": "fastener"
+    },
+    {
+      "id": "bolt_wr",
+      "kind": "fastener",
+      "grams": 0.32567786662640447,
+      "tol_g": 0.016283893331320225,
+      "source": "fastener"
     },
     {
       "id": "bolt_fl",

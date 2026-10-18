@@ -16,7 +16,7 @@ fn main() {
         println!("{:>16} {:>7.2} g +-{:.2} {}", l.id, l.grams, l.tol_g, l.source);
     }
     for f in rep.findings.iter().filter(|f| !f.pass) {
-        println!("[{:?}] {} {} :: {}", f.severity, f.id, f.title, f.message);
+        println!("[{:?}] {} {} :: {} at {:?}", f.severity, f.id, f.title, f.message, f.at);
     }
     println!("summary {:?} ok={}", rep.summary, rep.ok);
     let r = resolve(spec);
