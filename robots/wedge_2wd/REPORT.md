@@ -1,14 +1,14 @@
 # Verifier report: Reference 2WD wedge
 
-Profile `aws2025`. 0 blockers, 0 warnings, 14 checks passed.
+Profile `aws2025`. 0 blockers, 0 warnings, 24 checks passed.
 
-Mass 106.0 g (range 87.0 to 125.1 g, limit 150 g).
+Mass 106.0 g (range 87.0 to 125.0 g, limit 150 g).
 
 ## Findings
 
 - **pass** `validity.ok`: Spec is well formed 17 parts, 6 fasteners, 5 wires.
-- **pass** `wiring.route`: Every wire has a route 5 wires routed as real-thickness tubes through free space, 258 mm in total, no collisions.
-- **pass** `mass.ok`: Within the weight limit 106.0 g (range 87.0 to 125.1 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.
+- **pass** `wiring.route`: Every wire has a route 5 wires routed as real-thickness tubes through free space, 257 mm in total, no collisions.
+- **pass** `mass.ok`: Within the weight limit 106.0 g (range 87.0 to 125.0 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.
 - **pass** `interference.overlap`: No parts collide 40 touching or overlapping pairs checked; touching is allowed, overlap deeper than 0.08 mm is not.
 - **pass** `interference.sweep`: No joints to sweep No part has a joint.
 - **pass** `retention.declared`: Held by declared method `esc` is held by tape.
@@ -16,7 +16,17 @@ Mass 106.0 g (range 87.0 to 125.1 g, limit 150 g).
 - **pass** `retention.declared`: Held by declared method `power_switch` is held by adhesive.
 - **pass** `retention.captive`: Every loose part is held 6 parts checked, 3 held by a declared method, the rest captive in their pockets.
 - **pass** `connection.joined`: Every part is attached All 17 parts lead back to the chassis through screws, shared prints, captive pockets, joints or declared connections.
+- **pass** `ground.wheels_touch`: Wheels touch the floor All 2 wheels reach the floor plane (z = -14.00 mm).
+- **pass** `ground.clearance`: Body clears the floor Lowest body part is 4.0 mm above the floor.
+- **pass** `ground.wedge_gap`: Wedge tip height is right `wedge` tip is 0.64 mm above the floor.
+- **pass** `ground.stance`: Stable on the floor Centre of mass is 20.3 mm inside the support polygon of wheels and wedge.
+- **pass** `legal.switch`: Marked tool-free power switch `power_switch` is a marked, tool-free power switch.
+- **pass** `switch.recess`: Switch is recessed `power_switch` sits 1.0 mm below the surrounding surface and slides across the robot.
+- **pass** `legal.failsafe`: Failsafe declared The robot stops when the transmitter is switched off.
 - **pass** `legal.footprint`: Fits the square Fits a 122.5 mm square (limit 150 mm).
+- **pass** `fastener.ok`: Screws are reachable and bite 6 screws: driver path clear, thread engagement enough, heads seated.
+- **pass** `power.battery`: Battery covers peak current Peak 0.7 A within the 7.2 A rating.
+- **pass** `mfg.walls`: Walls are thick enough to make 3 made parts checked for minimum wall and bed size.
 - **pass** `assembly.order`: Everything can be assembled Every part slides in along a clear straight path. Assembly order: insert_rr, insert_rl, insert_fr, insert_fl, rx, esc, battery, motor_r, motor_l, chassis_top, insert_wr, insert_wl, power_switch, wheel_r, wheel_l, wedge, bolt_rr, bolt_rl, bolt_fr, bolt_fl, bolt_wr, bolt_wl.
 - **pass** `claim.holds`: Claim matches the model "weighs 150 g or less" (mass_total_g <= 150)
 - **pass** `claim.holds`: Claim matches the model "fits the 150 mm square" (footprint_mm <= 150)
@@ -27,7 +37,7 @@ Mass 106.0 g (range 87.0 to 125.1 g, limit 150 g).
 |---|---|---|---|
 | chassis_bottom | 22.61 | 4.52 | computed |
 | chassis_top | 22.20 | 4.44 | computed |
-| wedge | 13.49 | 2.70 | computed |
+| wedge | 13.43 | 2.69 | computed |
 | motor_l | 7.50 | 1.12 | catalog |
 | motor_r | 7.50 | 1.12 | catalog |
 | wheel_l | 3.40 | 0.51 | catalog |
@@ -48,7 +58,7 @@ Mass 106.0 g (range 87.0 to 125.1 g, limit 150 g).
 | bolt_fr | 0.57 | 0.03 | fastener |
 | bolt_rl | 0.57 | 0.03 | fastener |
 | bolt_rr | 0.57 | 0.03 | fastener |
-| wires | 0.57 | 0.17 | wire |
+| wires | 0.56 | 0.17 | wire |
 | allowance | 1.20 | 0.60 | declared |
 
 ## Wire routes

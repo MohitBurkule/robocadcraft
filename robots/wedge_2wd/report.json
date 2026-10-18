@@ -5,8 +5,8 @@
   "summary": {
     "blockers": 0,
     "warnings": 0,
-    "passed": 14,
-    "total": 14
+    "passed": 24,
+    "total": 24
   },
   "findings": [
     {
@@ -28,7 +28,7 @@
       "severity": "info",
       "pass": true,
       "title": "Every wire has a route",
-      "message": "5 wires routed as real-thickness tubes through free space, 258 mm in total, no collisions.",
+      "message": "5 wires routed as real-thickness tubes through free space, 257 mm in total, no collisions.",
       "expected": null,
       "actual": null,
       "parts": [],
@@ -41,7 +41,7 @@
       "severity": "info",
       "pass": true,
       "title": "Within the weight limit",
-      "message": "106.0 g (range 87.0 to 125.1 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.",
+      "message": "106.0 g (range 87.0 to 125.0 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.",
       "expected": "<= 150 g",
       "actual": "106.0 g",
       "parts": [],
@@ -146,12 +146,142 @@
       "fix": null
     },
     {
+      "id": "ground.wheels_touch",
+      "group": "ground",
+      "severity": "info",
+      "pass": true,
+      "title": "Wheels touch the floor",
+      "message": "All 2 wheels reach the floor plane (z = -14.00 mm).",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "ground.clearance",
+      "group": "ground",
+      "severity": "info",
+      "pass": true,
+      "title": "Body clears the floor",
+      "message": "Lowest body part is 4.0 mm above the floor.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "ground.wedge_gap",
+      "group": "ground",
+      "severity": "info",
+      "pass": true,
+      "title": "Wedge tip height is right",
+      "message": "`wedge` tip is 0.64 mm above the floor.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "ground.stance",
+      "group": "ground",
+      "severity": "info",
+      "pass": true,
+      "title": "Stable on the floor",
+      "message": "Centre of mass is 20.3 mm inside the support polygon of wheels and wedge.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "legal.switch",
+      "group": "legal",
+      "severity": "info",
+      "pass": true,
+      "title": "Marked tool-free power switch",
+      "message": "`power_switch` is a marked, tool-free power switch.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "switch.recess",
+      "group": "legal",
+      "severity": "info",
+      "pass": true,
+      "title": "Switch is recessed",
+      "message": "`power_switch` sits 1.0 mm below the surrounding surface and slides across the robot.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "legal.failsafe",
+      "group": "legal",
+      "severity": "info",
+      "pass": true,
+      "title": "Failsafe declared",
+      "message": "The robot stops when the transmitter is switched off.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
       "id": "legal.footprint",
       "group": "legal",
       "severity": "info",
       "pass": true,
       "title": "Fits the square",
       "message": "Fits a 122.5 mm square (limit 150 mm).",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "fastener.ok",
+      "group": "fasteners",
+      "severity": "info",
+      "pass": true,
+      "title": "Screws are reachable and bite",
+      "message": "6 screws: driver path clear, thread engagement enough, heads seated.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "power.battery",
+      "group": "power",
+      "severity": "info",
+      "pass": true,
+      "title": "Battery covers peak current",
+      "message": "Peak 0.7 A within the 7.2 A rating.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
+      "id": "mfg.walls",
+      "group": "mfg",
+      "severity": "info",
+      "pass": true,
+      "title": "Walls are thick enough to make",
+      "message": "3 made parts checked for minimum wall and bed size.",
       "expected": null,
       "actual": null,
       "parts": [],
@@ -179,7 +309,7 @@
       "title": "Claim matches the model",
       "message": "\"weighs 150 g or less\" (mass_total_g <= 150)",
       "expected": "mass_total_g <= 150",
-      "actual": "106.03",
+      "actual": "105.97",
       "parts": [],
       "at": null,
       "fix": null
@@ -199,16 +329,46 @@
     }
   ],
   "metrics": {
-    "com_x": -0.32690590514485796,
-    "com_y": 3.967261823094043,
-    "com_z": -0.5485550164730382,
+    "com_x": -0.32710226228655503,
+    "com_y": 3.9312250662377175,
+    "com_z": -0.5478663351200583,
     "footprint_mm": 122.48384379119933,
-    "mass_hi_g": 125.06486950171332,
+    "ground_z": -14.0,
+    "mass_hi_g": 124.98781552726373,
     "mass_limit_g": 150.0,
-    "mass_lo_g": 87.00337675887214,
-    "mass_total_g": 106.03412313029273,
-    "wire_length_mm": 257.5523165263877,
-    "wire_mass_g": 0.5658424394084737
+    "mass_lo_g": 86.95225669555825,
+    "mass_total_g": 105.97003611141099,
+    "min_ground_clearance_mm": 4.0,
+    "min_wall_mm": 0.5,
+    "part_mass_g.battery": 12.5,
+    "part_mass_g.bolt_fl": 0.5732652309848004,
+    "part_mass_g.bolt_fr": 0.5732652309848004,
+    "part_mass_g.bolt_rl": 0.5732652309848006,
+    "part_mass_g.bolt_rr": 0.5732652309848006,
+    "part_mass_g.bolt_wl": 0.32567786662640436,
+    "part_mass_g.bolt_wr": 0.32567786662640447,
+    "part_mass_g.chassis_bottom": 22.612312988530938,
+    "part_mass_g.chassis_top": 22.19908420329434,
+    "part_mass_g.esc": 3.0,
+    "part_mass_g.insert_fl": 0.12,
+    "part_mass_g.insert_fr": 0.12,
+    "part_mass_g.insert_rl": 0.12,
+    "part_mass_g.insert_rr": 0.12,
+    "part_mass_g.insert_wl": 0.12,
+    "part_mass_g.insert_wr": 0.12,
+    "part_mass_g.motor_l": 7.5,
+    "part_mass_g.motor_r": 7.5,
+    "part_mass_g.power_switch": 0.5,
+    "part_mass_g.rx": 4.5,
+    "part_mass_g.wedge": 13.429875340900166,
+    "part_mass_g.wheel_l": 3.4,
+    "part_mass_g.wheel_r": 3.4,
+    "peak_current_a": 0.65,
+    "stance_margin_mm": 20.331225066237717,
+    "tip_angle_deg": 56.509428077159896,
+    "wedge_load_frac": 0.20679434439095565,
+    "wire_length_mm": 256.8716074162393,
+    "wire_mass_g": 0.5643469214934778
   },
   "mass": [
     {
@@ -228,8 +388,8 @@
     {
       "id": "wedge",
       "kind": "wedge",
-      "grams": 13.492466841866914,
-      "tol_g": 2.698493368373383,
+      "grams": 13.429875340900166,
+      "tol_g": 2.685975068180033,
       "source": "computed"
     },
     {
@@ -375,8 +535,8 @@
     {
       "id": "wires",
       "kind": "wire",
-      "grams": 0.5658424394084737,
-      "tol_g": 0.1697527318225421,
+      "grams": 0.5643469214934778,
+      "tol_g": 0.16930407644804332,
       "source": "wire"
     },
     {
@@ -394,7 +554,7 @@
       "awg": 26.0,
       "kind": "power",
       "od_mm": 1.3,
-      "length_mm": 100.24553560458187,
+      "length_mm": 99.91548837133911,
       "points": [
         [
           0.0,
@@ -457,14 +617,9 @@
           4.099999999999998
         ],
         [
-          -20.900000000000002,
-          -33.3,
-          4.699999999999999
-        ],
-        [
           -22.0,
           -34.0,
-          5.3
+          4.3
         ]
       ]
     },
@@ -473,22 +628,17 @@
       "awg": 26.0,
       "kind": "power",
       "od_mm": 1.3,
-      "length_mm": 21.388134094515152,
+      "length_mm": 21.03747221760957,
       "points": [
         [
           -14.0,
           -34.0,
-          5.3
-        ],
-        [
-          -11.899999999999999,
-          -33.9,
-          4.099999999999998
+          4.3
         ],
         [
           -11.300000000000004,
           -34.5,
-          3.5
+          2.8999999999999986
         ],
         [
           -4.700000000000003,
@@ -759,7 +909,7 @@
         0.0,
         1.0
       ],
-      "travel_mm": 7.199999999999999
+      "travel_mm": 7.8999999999999995
     },
     {
       "order": 11,
@@ -881,5 +1031,14 @@
       ],
       "travel_mm": 10.7
     }
-  ]
+  ],
+  "not_checked": [
+    "Strength: arm, fork and shell bending under impact (no stress or stiffness model; load path is not traced)",
+    "Battery access and field service: swap time, number of fasteners to reach the battery or change a wheel",
+    "Wire tether in assembly order: soldered wires between parts are not part of the disassembly sweep",
+    "Heat-set insert iron clearance and soldering-iron access",
+    "Gyro, spin-up time and ESC current limits of the weapon",
+    "Thermal limits and glue or tape strength (declared only)"
+  ],
+  "checks_revision": 6
 }
