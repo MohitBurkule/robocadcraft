@@ -240,6 +240,17 @@ pub struct Electronics {
     pub cells: Option<f64>,
 }
 
+/// How two structural parts are joined. `method: "none"` says they are deliberately not joined and needs a reason.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Connection {
+    pub a: String,
+    pub b: String,
+    /// `screw`, `shaft`, `pin`, `press_fit`, `glue`, `tape`, `snap`, `interlock`, `velcro`, `none`.
+    pub method: String,
+    pub reason: String,
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AllowOverlap {
@@ -275,6 +286,8 @@ pub struct Spec {
     /// The robot is meant to keep driving when flipped.
     pub can_run_inverted: bool,
     pub allow_overlap: Vec<AllowOverlap>,
+    /// Declared joins between touching structural parts; see `checks::connections`.
+    pub connections: Vec<Connection>,
     pub claims: Vec<Claim>,
     /// Joint id (part id) -> value overriding the default for the start configuration.
     pub start_pose: BTreeMap<String, f64>,

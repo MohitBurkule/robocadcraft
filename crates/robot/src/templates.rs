@@ -120,7 +120,6 @@ pub fn wedge_2wd() -> Spec {
     wedge.shape = Some(Shape::union(wedge_items));
     wedge.material = Some("petg".into());
     wedge.process = Some("fdm".into());
-    wedge.fused_with = Some("chassis_bottom".into());
     wedge.color = Some("#ff6a1a".into());
 
     let mut parts = vec![chassis_bottom, chassis_top, wedge];
@@ -188,6 +187,13 @@ pub fn wedge_2wd() -> Spec {
         fasteners,
         wires,
         electronics: Electronics { failsafe: true, weapon_remote_disable: false, radio: Some("2.45 GHz".into()), cells: Some(2.0) },
+        connections: vec![Connection {
+            a: "wedge".into(),
+            b: "chassis_bottom".into(),
+            method: "glue".into(),
+            reason: "PETG wedge epoxied along the full 84 mm front edge of the nylon shell; nylon needs a roughened surface and epoxy, bolts into the wedge are the upgrade".into(),
+        }],
+        allow_overlap: vec![AllowOverlap { a: "wedge".into(), b: "chassis_bottom".into(), max_depth_mm: Some(0.3), reason: "glue line".into() }],
         claims: vec![
             Claim { id: "c_mass".into(), text: "weighs 150 g or less".into(), metric: "mass_total_g".into(), op: "<=".into(), value: 150.0 },
             Claim { id: "c_fit".into(), text: "fits the 150 mm square".into(), metric: "footprint_mm".into(), op: "<=".into(), value: 150.0 },

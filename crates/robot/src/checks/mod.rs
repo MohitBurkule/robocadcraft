@@ -7,6 +7,7 @@ use crate::spec::Spec;
 use crate::world::{Resolved, World, resolve};
 
 pub mod assembly;
+pub mod connections;
 pub mod fasteners;
 pub mod ground;
 pub mod interference;
@@ -62,6 +63,7 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
             rep.mass = mass_lines;
             findings.append(&mut f);
             findings.extend(interference::run(&mut ctx));
+            findings.extend(connections::run(&mut ctx));
             findings.extend(ground::run(&mut ctx));
             findings.extend(legal::run(&mut ctx));
             findings.extend(fasteners::run(&mut ctx));
