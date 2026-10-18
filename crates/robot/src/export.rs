@@ -226,5 +226,17 @@ pub fn write_all(slug: &str, spec: &Spec, dir: &Path, mesh_step_mm: f64) -> Resu
         let name = b.id.replace([':', '/'], "_");
         put(&format!("stl/{name}.stl"), stl_bytes(&name, &tris))?;
     }
+    let (bodies, bad, warn) = crate::step::bodies(&world);
+    std::fs::create_dir_all(root.join("step")).map_err(io)?;
+    for b in &bodies {
+        put(&format!("step/{}.step", b.name), crate::step::step_text(&b.name, &[b]).into_bytes())?;
+    }
+    let all: Vec<&crate::step::StepBody> = bodies.iter().collect();
+    put("step/assembly.step", crate::step::step_text(slug, &all).into_bytes())?;
+    if !bad.is_empty() || !warn.is_empty() {
+        let mut list: String = bad.iter().map(|(n, e)| format!("{n}: NOT EXPORTED: {e}\n")).collect();
+        list.extend(warn.iter().map(|(n, e)| format!("{n}: {e}\n")));
+        put("step/_skipped.txt", list.into_bytes())?;
+    }
     Ok((rep, files))
 }

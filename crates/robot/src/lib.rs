@@ -6,6 +6,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 #![forbid(unsafe_code)]
 
+pub mod brep;
 pub mod catalog;
 pub mod checks;
 pub mod export;
@@ -17,5 +18,6 @@ pub mod render;
 pub mod review;
 pub mod sdf;
 pub mod spec;
+pub mod step;
 pub mod templates;
 pub mod world;
