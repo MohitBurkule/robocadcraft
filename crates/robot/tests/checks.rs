@@ -67,3 +67,23 @@ fn floating_part_is_flagged() {
     };
     assert!(failed(&verify(spec, &Options::default()), "connection.floating"));
 }
+
+#[test]
+fn vertical_switch_is_flagged() {
+    let mut sw = Part {
+        id: "sw".into(),
+        kind: PartKind::Switch,
+        catalog: Some("switch_slide_12x4".into()),
+        at: [0.0, 0.0, 5.0],
+        tool_free: true,
+        marked: true,
+        ..Part::default()
+    };
+    sw.actuation = Some([0.0, 0.0, 1.0]);
+    let spec = Spec {
+        name: "sw".into(),
+        parts: vec![part("base", PartKind::Structure, Shape::boxed(30.0, 30.0, 6.0), [0.0; 3], "nylon", "fdm"), sw],
+        ..Spec::default()
+    };
+    assert!(failed(&verify(spec, &Options::default()), "switch.vertical_axis"));
+}

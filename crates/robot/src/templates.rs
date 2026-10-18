@@ -160,7 +160,7 @@ pub fn wedge_2wd() -> Spec {
     let mut rx = cat("rx", PartKind::Receiver, "rx_fs_ia6_decased", [0.0, 26.0, 0.0]);
     rx.retained = Some("tape".into());
     parts.push(rx);
-    let mut sw = cat("power_switch", PartKind::Switch, "switch_slide_12x4", [-18.0, -34.0, 7.8]);
+    let mut sw = cat("power_switch", PartKind::Switch, "switch_slide_12x4", [-18.0, -34.0, 6.8]);
     sw.tool_free = true;
     sw.marked = true;
     sw.label = Some("ON/OFF".into());

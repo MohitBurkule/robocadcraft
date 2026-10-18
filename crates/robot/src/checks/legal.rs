@@ -79,6 +79,7 @@ fn controls(ctx: &Ctx) -> Vec<Finding> {
             );
         }
     }
+    out.extend(switch_safety(ctx));
     if r.spec.electronics.failsafe {
         out.push(Finding::pass("legal.failsafe", G, "Failsafe declared", "The robot stops when the transmitter is switched off."));
     } else {
@@ -210,6 +211,108 @@ fn weapons(ctx: &mut Ctx) -> Vec<Finding> {
                         out.push(Finding::fail("legal.locking_bar_blocks", G, Severity::Blocker, "Locking bar does not touch the weapon", format!("`{}` does not reach `{}`, so it cannot hold it still.", bar.id, p.id)).on(&[&bar.id, &p.id]).fix("Move the pin so it passes through a hole in the weapon or sits against a tooth."));
                     }
                 }
+            }
+        }
+    }
+    out
+}
+
+/// The power switch must not be toggled by the robot's own motion or by landing on it upside down.
+fn switch_safety(ctx: &Ctx) -> Vec<Finding> {
+    let r = ctx.r;
+    let w = ctx.world;
+    let mut out = Vec::new();
+    for rp in r.parts.iter().filter(|rp| rp.part.kind == PartKind::Switch) {
+        let p = &rp.part;
+        let Some(i) = w.index(&p.id) else { continue };
+        let Some(b) = w.bodies.get(i) else { continue };
+        let local = p.actuation.map(crate::math::V3::from_arr).unwrap_or(v3(1.0, 0.0, 0.0));
+        let axis = b.xf.apply_dir(local).norm();
+        let (ay, az) = (axis.y.abs(), axis.z.abs());
+        if az > 0.7 {
+            out.push(
+                Finding::fail(
+                    "switch.vertical_axis",
+                    G,
+                    Severity::Blocker,
+                    "Switch slides up and down",
+                    format!(
+                        "`{}` moves along the vertical axis: when the robot is flipped, or lands hard, gravity and impact slide it to OFF.",
+                        p.id
+                    ),
+                )
+                .on(&[&p.id])
+                .fix("Turn the switch so it slides sideways (along the robot's x axis), or use a rocker or a removable link."),
+            );
+        } else if ay > 0.7 {
+            out.push(
+                Finding::fail(
+                    "switch.drive_axis",
+                    G,
+                    Severity::Warning,
+                    "Switch slides along the drive direction",
+                    format!("`{}` moves forward and back: hard acceleration, braking and head-on hits push the slider.", p.id),
+                )
+                .on(&[&p.id])
+                .fix("Orient the slider across the robot (x axis), or add a detent plus a guard rib on both ends."),
+            );
+        }
+        // Recess below the surrounding surface: a switch that stands proud is pressed when the robot lands on that face.
+        let c = b.aabb.center();
+        let top = b.aabb.max.z;
+        let mut around: f64 = f64::NEG_INFINITY;
+        for (dx, dy) in [(7.5, 0.0), (-7.5, 0.0), (0.0, 5.0), (0.0, -5.0), (7.5, 5.0), (-7.5, -5.0)] {
+            let (x, y) = (c.x + dx, c.y + dy);
+            let mut z = b.aabb.max.z + 6.0;
+            while z > b.aabb.min.z {
+                if w.bodies.iter().enumerate().any(|(j, o)| {
+                    j != i && !o.id.starts_with("wire:") && o.part_idx.is_some() && o.aabb.contains(v3(x, y, z)) && w.sdf(j, v3(x, y, z)) < 0.0
+                }) {
+                    around = around.max(z);
+                    break;
+                }
+                z -= 0.2;
+            }
+        }
+        if around.is_finite() {
+            let recess = around - top;
+            if recess < 0.3 {
+                out.push(
+                    Finding::fail(
+                        "switch.exposed",
+                        G,
+                        Severity::Warning,
+                        "Switch is not recessed",
+                        format!(
+                            "`{}` stands {:.1} mm {} the surrounding surface; landing on that face or a hit will flip it off.",
+                            p.id,
+                            recess.abs(),
+                            if recess < 0.0 { "above" } else { "level with" }
+                        ),
+                    )
+                    .on(&[&p.id])
+                    .here(c)
+                    .fix("Sink it at least 1 mm below the surface inside a pocket with raised walls on both sides, leaving finger access."),
+                );
+            } else if recess > 4.0 {
+                out.push(
+                    Finding::fail(
+                        "switch.too_deep",
+                        G,
+                        Severity::Warning,
+                        "Switch is buried",
+                        format!("`{}` is {recess:.1} mm below the surface; a finger cannot move the slider without a tool.", p.id),
+                    )
+                    .on(&[&p.id])
+                    .here(c),
+                );
+            } else {
+                out.push(Finding::pass(
+                    "switch.recess",
+                    G,
+                    "Switch is recessed",
+                    format!("`{}` sits {recess:.1} mm below the surrounding surface and slides across the robot.", p.id),
+                ));
             }
         }
     }
