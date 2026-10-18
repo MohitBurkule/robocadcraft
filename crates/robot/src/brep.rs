@@ -86,16 +86,47 @@ pub fn transform(s: &Solid, xf: &Xform) -> Solid {
 
 /// Longest a single boolean may run before it is abandoned (the kernel has no cancellation, so
 /// the worker thread is left to finish on its own).
-const OP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+const OP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(3);
 
-fn guarded<T: Send + 'static>(f: impl FnOnce() -> Option<T> + Send + 'static) -> Option<T> {
+/// Total time one Subtract may spend; remaining cuts are skipped (with a note) after it.
+const CUT_BUDGET: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// `Err(())` on timeout (the worker keeps burning a core, so callers must not retry).
+fn guarded<T: Send + 'static>(f: impl FnOnce() -> Option<T> + Send + 'static) -> Result<Option<T>, ()> {
     let (tx, rx) = std::sync::mpsc::channel();
     let spawned = std::thread::Builder::new().stack_size(64 << 20).spawn(move || {
         let r = catch_unwind(AssertUnwindSafe(f)).ok().flatten();
         let _ = tx.send(r);
     });
-    spawned.ok()?;
-    rx.recv_timeout(OP_TIMEOUT).ok().flatten()
+    if spawned.is_err() {
+        return Ok(None);
+    }
+    match rx.recv_timeout(OP_TIMEOUT) {
+        Ok(r) => Ok(r),
+        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => Err(()),
+        Err(_) => Ok(None),
+    }
+}
+
+fn bbox(s: &Solid) -> ([f64; 3], [f64; 3]) {
+    let mut lo = [f64::INFINITY; 3];
+    let mut hi = [f64::NEG_INFINITY; 3];
+    for sh in s.boundaries() {
+        for v in sh.vertex_iter() {
+            let p = v.point();
+            for (k, c) in [p.x, p.y, p.z].into_iter().enumerate() {
+                lo[k] = lo[k].min(c);
+                hi[k] = hi[k].max(c);
+            }
+        }
+    }
+    (lo, hi)
+}
+
+/// Vertex boxes miss curved bulges, so pad a little; a cut that cannot touch is skipped.
+fn bbox_overlap(a: &Solid, b: &Solid) -> bool {
+    let ((al, ah), (bl, bh)) = (bbox(a), bbox(b));
+    (0..3).all(|k| al[k] - 10.0 <= bh[k] + 10.0 && bl[k] - 10.0 <= ah[k] + 10.0) || al.iter().chain(ah.iter()).any(|v| !v.is_finite())
 }
 
 /// Centre of the vertex bounding box.
@@ -130,7 +161,7 @@ fn scaled(s: &Solid, k: f64) -> Solid {
 }
 
 /// Operand variants tried when the exact booleans fail, from least to most change.
-const NUDGES: [f64; 8] = [1.0 + 2e-4, 1.0 - 2e-4, 1.0 + 1e-3, 1.0 - 1e-3, 1.0 + 5e-3, 1.0 - 5e-3, 1.0 + 2e-2, 1.0];
+const NUDGES: [f64; 3] = [1.0 + 2e-4, 1.0 - 1e-3, 1.0];
 
 fn boolean(a: &Solid, b: &Solid, op: fn(&Solid, &Solid, f64) -> Option<Solid>, what: &str) -> Result<Solid, String> {
     let dbg = std::env::var_os("ROBOT_BREP_DEBUG").is_some();
@@ -142,10 +173,12 @@ fn boolean(a: &Solid, b: &Solid, op: fn(&Solid, &Solid, f64) -> Option<Solid>, w
             let (a2, b2, tol2) = (a.clone(), bb.clone(), *tol);
             let r = guarded(move || op(&a2, &b2, tol2));
             if dbg {
-                eprintln!("{what} k={k} tol={tol} {:?} {}", t.elapsed(), r.is_some());
+                eprintln!("{what} k={k} tol={tol} {:?} {}", t.elapsed(), matches!(r, Ok(Some(_))));
             }
-            if let Some(r) = r {
-                return Ok(r);
+            match r {
+                Ok(Some(r)) => return Ok(r),
+                Ok(None) => {}
+                Err(()) => return Err(format!("{what} timed out")),
             }
         }
     }
@@ -202,8 +235,14 @@ fn tube(points: &[[f64; 3]], r: f64) -> Result<Vec<Solid>, String> {
 
 /// Rebuild `shape` as B-rep. Usually one solid; a failed tube union gives several.
 pub fn solids(shape: &Shape) -> Result<Vec<Solid>, String> {
+    solids_at(shape, Matrix4::from_scale(1.0))
+}
+
+/// Placements are pushed down to the primitives: transforming a boolean result is very slow
+/// (every intersection curve is rebuilt), so `m` is applied before any boolean.
+fn solids_at(shape: &Shape, m: Matrix4) -> Result<Vec<Solid>, String> {
     shape.validate()?;
-    build(shape)
+    build(shape, m)
 }
 
 /// Balanced pairwise union: smaller operands make each boolean cheaper than a left fold.
@@ -235,41 +274,58 @@ fn note(s: String) {
 
 /// Like [`solids`], plus warnings about operations that had to be skipped (geometry is then
 /// slightly off: a hole or pocket is missing).
-pub fn solids_with_notes(shape: &Shape) -> (Result<Vec<Solid>, String>, Vec<String>) {
+pub fn solids_with_notes(shape: &Shape, xf: &Xform) -> (Result<Vec<Solid>, String>, Vec<String>) {
     NOTES.with(|n| n.borrow_mut().clear());
-    let r = solids(shape);
+    let r = solids_at(shape, matrix(xf));
     (r, NOTES.with(|n| std::mem::take(&mut *n.borrow_mut())))
 }
 
-fn one(shape: &Shape) -> Result<Solid, String> {
-    let mut v = build(shape)?;
+fn one(shape: &Shape, m: Matrix4) -> Result<Solid, String> {
+    let mut v = build(shape, m)?;
     if v.len() == 1 { v.pop().ok_or_else(|| "empty".to_string()) } else { Err("a boolean operand split into several solids".into()) }
 }
 
-fn build(shape: &Shape) -> Result<Vec<Solid>, String> {
+fn build(shape: &Shape, m: Matrix4) -> Result<Vec<Solid>, String> {
+    // A mirroring placement turns primitives inside out; flip them back or booleans fail.
+    let mirrored = truck_modeling::SquareMatrix::determinant(&m) < 0.0;
+    let at = |s: Solid| {
+        let mut t = builder::transformed(&s, m);
+        if mirrored {
+            t.not();
+        }
+        t
+    };
     Ok(match shape {
-        Shape::Box { size } => vec![box_solid(size[0], size[1], size[2])],
-        Shape::Cylinder { radius, height } => vec![cylinder_solid(*radius, *height)?],
-        Shape::Sphere { radius } => vec![sphere_solid(*radius)?],
-        Shape::Prism { points, height } => vec![prism_solid(points, *height)?],
-        Shape::Tube { points, radius } => tube(points, *radius)?,
+        Shape::Box { size } => vec![at(box_solid(size[0], size[1], size[2]))],
+        Shape::Cylinder { radius, height } => vec![at(cylinder_solid(*radius, *height)?)],
+        Shape::Sphere { radius } => vec![at(sphere_solid(*radius)?)],
+        Shape::Prism { points, height } => vec![at(prism_solid(points, *height)?)],
+        Shape::Tube { points, radius } => tube(points, *radius)?.into_iter().map(at).collect(),
         Shape::Union { items } => {
-            let parts = items.iter().map(one).collect::<Result<Vec<_>, _>>()?;
+            let parts = items.iter().map(|i| one(i, m)).collect::<Result<Vec<_>, _>>()?;
             vec![union_all(parts)?]
         }
         Shape::Intersect { items } => {
             let mut it = items.iter();
             let Some(first) = it.next() else { return Err("empty intersection".into()) };
-            let mut acc = one(first)?;
+            let mut acc = one(first, m)?;
             for s in it {
-                acc = intersect2(&acc, &one(s)?)?;
+                acc = intersect2(&acc, &one(s, m)?)?;
             }
             vec![acc]
         }
         Shape::Subtract { base, cut } => {
-            let mut acc = one(base)?;
+            let mut acc = one(base, m)?;
+            let t0 = std::time::Instant::now();
             for c in cut {
-                for s in build(c)? {
+                for s in build(c, m)? {
+                    if t0.elapsed() > CUT_BUDGET {
+                        note("a cut was skipped: time budget for this part spent".into());
+                        continue;
+                    }
+                    if !bbox_overlap(&acc, &s) {
+                        continue;
+                    }
                     match subtract2(&acc, &s) {
                         Ok(r) => acc = r,
                         Err(e) => note(format!("a cut was skipped: {e}")),
@@ -280,9 +336,9 @@ fn build(shape: &Shape) -> Result<Vec<Solid>, String> {
         }
         Shape::Place { shape, at, rot } => {
             let xf = Xform::new(crate::math::V3::from_arr(*at), crate::math::V3::from_arr(*rot));
-            build(shape)?.iter().map(|s| transform(s, &xf)).collect()
+            build(shape, m * matrix(&xf))?
         }
-        Shape::Offset { shape, d } => vec![offset(shape, *d)?],
+        Shape::Offset { shape, d } => vec![at(offset(shape, *d)?)],
     })
 }
 

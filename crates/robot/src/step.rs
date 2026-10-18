@@ -17,15 +17,15 @@ pub struct StepBody {
 /// `(name, reason)`; skipped cuts come back as warnings.
 pub fn bodies(world: &World) -> (Vec<StepBody>, Vec<(String, String)>, Vec<(String, String)>) {
     let mut keys: Vec<String> = Vec::new();
-    let mut uniq: Vec<&crate::sdf::Shape> = Vec::new();
+    let mut uniq: Vec<(&crate::sdf::Shape, &crate::math::Xform)> = Vec::new();
     let key_of: Vec<usize> = world
         .bodies
         .iter()
         .map(|b| {
-            let k = serde_json::to_string(&b.shape).unwrap_or_default();
+            let k = format!("{}{:?}", serde_json::to_string(&b.shape).unwrap_or_default(), b.xf);
             keys.iter().position(|x| *x == k).unwrap_or_else(|| {
                 keys.push(k);
-                uniq.push(&b.shape);
+                uniq.push((&b.shape, &b.xf));
                 keys.len() - 1
             })
         })
@@ -35,16 +35,16 @@ pub fn bodies(world: &World) -> (Vec<StepBody>, Vec<(String, String)>, Vec<(Stri
     let results: std::sync::Mutex<Vec<Option<(Result<Vec<Solid>, String>, Vec<String>)>>> = std::sync::Mutex::new(vec![None; uniq.len()].into_iter().map(|_: Option<()>| None).collect());
     // Slowest first (largest trees) so one big part does not start last.
     let mut order: Vec<usize> = (0..uniq.len()).collect();
-    order.sort_by_key(|&i| std::cmp::Reverse(uniq.get(i).map(|s| serde_json::to_string(s).map(|t| t.len()).unwrap_or(0)).unwrap_or(0)));
+    order.sort_by_key(|&i| std::cmp::Reverse(uniq.get(i).map(|s| serde_json::to_string(s.0).map(|t| t.len()).unwrap_or(0)).unwrap_or(0)));
     std::thread::scope(|sc| {
         for _ in 0..threads {
             sc.spawn(|| {
                 loop {
                     let n = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                     let Some(&i) = order.get(n) else { break };
-                    let Some(shape) = uniq.get(i) else { break };
+                    let Some(&(shape, xf)) = uniq.get(i) else { break };
                     let t = std::time::Instant::now();
-                    let r = brep::solids_with_notes(shape);
+                    let r = brep::solids_with_notes(shape, xf);
                     eprintln!("[brep] shape {i}: {} in {:.1?}", if r.0.is_ok() { "ok" } else { "FAILED" }, t.elapsed());
                     if let Ok(mut g) = results.lock() {
                         if let Some(slot) = g.get_mut(i) {
@@ -64,7 +64,7 @@ pub fn bodies(world: &World) -> (Vec<StepBody>, Vec<(String, String)>, Vec<(Stri
         match results.get(k).and_then(|r| r.as_ref()) {
             Some((Ok(s), notes)) => {
                 warn.extend(notes.iter().map(|n| (name.clone(), n.clone())));
-                ok.push(StepBody { name, solids: s.iter().map(|s| brep::transform(s, &b.xf)).collect() });
+                ok.push(StepBody { name, solids: s.clone() });
             }
             Some((Err(e), _)) => bad.push((name, e.clone())),
             None => bad.push((name, "not built".into())),
