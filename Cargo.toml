@@ -77,3 +77,15 @@ opt-level = 3
 lto = "thin"
 codegen-units = 16
 debug = 0
+
+# Fast iteration for probes/robot CLI: optimised deps, cheap own-crate builds, no LTO.
+# Use: cargo build --profile fast -p cadcraft-robot --bin robot  (binary: target/fast/robot)
+[profile.fast]
+inherits = "release"
+lto = false
+opt-level = 1
+incremental = true
+codegen-units = 256
+
+[profile.fast.package."*"]
+opt-level = 3
