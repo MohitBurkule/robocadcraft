@@ -100,12 +100,14 @@ pub fn wedge_2wd() -> Spec {
     let b0 = [y1 - t * sn, t0z - t * cs];
     let to_x = |s: Shape, x: f64| s.rot([90.0, 0.0, 90.0]).at(x, 0.0, 0.0);
     let plate = to_x(Shape::Prism { points: vec![b0, t0, t1, b1], height: 2.0 * (xh - 1.0) }, 0.0);
-    let rib_y_end = b0[0] + (b0[1] + 10.0) / ang.tan();
+    // Ribs stop where they are 2 mm tall; a taper to a point is a sliver no printer can make.
+    let rib_y_end = b0[0] + (b0[1] + 8.0) / ang.tan();
     let mut wedge_items = vec![plate];
     // Back plate covers the chassis front face and is bolted to the upper front bosses.
     wedge_items.push(Shape::boxed(2.0 * (xh - 1.0), 2.4, 19.65).at(0.0, y1 + 1.2, -0.175));
     for x in [0.0, 14.0, -14.0, 28.0, -28.0, 41.0, -41.0] {
-        let rib = Shape::Prism { points: vec![[b0[0], b0[1] + 0.2], [rib_y_end, -10.0 + 0.0], [y1, -10.0], [y1, b0[1] + 0.2]], height: 1.2 };
+        let rib =
+            Shape::Prism { points: vec![[b0[0], b0[1] + 0.2], [rib_y_end, -7.8], [rib_y_end, -10.0], [y1, -10.0], [y1, b0[1] + 0.2]], height: 1.2 };
         wedge_items.push(to_x(rib, x));
     }
 
