@@ -68,6 +68,8 @@ pub fn wedge_2wd() -> Spec {
         pockets.push(cut(s * 4.15, wy, 3.3, 5.0, 3.0));
         pockets.push(Shape::cyl_x(2.0, 2.4).at(s * 28.4, wy, 0.0));
         pockets.push(cut(s * xw, wy, 10.8, 29.0, 10.0));
+        // Open the outer wall so the wheel slides onto the shaft from outside.
+        pockets.push(cut(s * 41.65, wy, 3.7, 29.0, 10.0));
     }
     let bolts: [(&str, f64, f64); 4] = [("fl", 26.0, 29.0), ("fr", -26.0, 29.0), ("rl", 30.0, -35.0), ("rr", -30.0, -35.0)];
     for (_, x, y) in bolts {
@@ -83,12 +85,9 @@ pub fn wedge_2wd() -> Spec {
 
     // Bottom shell: heat-set insert seats under each bolt.
     let mut bottom_cuts = Vec::new();
-    for s in [1.0, -1.0] {
-        bottom_cuts.push(Shape::cyl_y(1.6, 3.6).at(s * WEDGE_BOLT_X, 34.2, -6.0));
-    }
     for (_, x, y) in bolts {
-        bottom_cuts.push(Shape::cyl(1.1, 5.9).at(x, y, -2.45));
-        bottom_cuts.push(Shape::cyl(1.6, 3.0).at(x, y, -6.7));
+        // Bore open to the mating face so the insert can be pressed in from above.
+        bottom_cuts.push(Shape::cyl(1.6, 8.7).at(x, y, -3.85));
     }
     // Wedge: thin sloped plate on triangular ribs, printed with the bottom shell.
     let ang = 14.0_f64.to_radians();
@@ -103,8 +102,8 @@ pub fn wedge_2wd() -> Spec {
     let plate = to_x(Shape::Prism { points: vec![b0, t0, t1, b1], height: 2.0 * (xh - 1.0) }, 0.0);
     let rib_y_end = b0[0] + (b0[1] + 10.0) / ang.tan();
     let mut wedge_items = vec![plate];
-    // Back plate against the chassis front face, bolted to the front bosses.
-    wedge_items.push(Shape::boxed(2.0 * (xh - 1.0), 2.4, 9.65).at(0.0, y1 + 1.2, -5.175));
+    // Back plate covers the chassis front face and is bolted to the upper front bosses.
+    wedge_items.push(Shape::boxed(2.0 * (xh - 1.0), 2.4, 19.65).at(0.0, y1 + 1.2, -0.175));
     for x in [0.0, 14.0, -14.0, 28.0, -28.0, 41.0, -41.0] {
         let rib = Shape::Prism { points: vec![[b0[0], b0[1] + 0.2], [rib_y_end, -10.0 + 0.0], [y1, -10.0], [y1, b0[1] + 0.2]], height: 1.2 };
         wedge_items.push(to_x(rib, x));
@@ -117,6 +116,10 @@ pub fn wedge_2wd() -> Spec {
     chassis_bottom.color = Some("#23262b".into());
 
     let mut top_cuts = Vec::new();
+    // Wedge insert bores open to the front face, in the upper boss where the driver can reach them above the ramp.
+    for s in [1.0, -1.0] {
+        top_cuts.push(Shape::cyl_y(1.6, 3.6).at(s * WEDGE_BOLT_X, 34.2, 6.0));
+    }
     for (_, x, y) in bolts {
         top_cuts.push(Shape::cyl(1.2, 11.0).at(x, y, 5.0));
         top_cuts.push(Shape::cyl(2.3, 2.7).at(x, y, 9.15));
@@ -129,7 +132,7 @@ pub fn wedge_2wd() -> Spec {
     chassis_top.color = Some("#3a3e46".into());
 
     let mut wedge = part("wedge", PartKind::Wedge);
-    let wedge_holes: Vec<Shape> = [1.0, -1.0].iter().map(|s| Shape::cyl_y(1.1, 4.0).at(s * WEDGE_BOLT_X, y1 + 1.2, -6.0)).collect();
+    let wedge_holes: Vec<Shape> = [1.0, -1.0].iter().map(|s| Shape::cyl_y(1.1, 4.0).at(s * WEDGE_BOLT_X, y1 + 1.2, 6.0)).collect();
     let mut wedge_cuts = wedge_holes;
     // Nothing of the wedge goes behind the chassis front face.
     wedge_cuts.push(Shape::boxed(100.0, 10.0, 40.0).at(0.0, y1 - 5.0, 0.0));
@@ -164,14 +167,14 @@ pub fn wedge_2wd() -> Spec {
 
     let mut fasteners = Vec::new();
     for (tag, s) in [("wl", 1.0), ("wr", -1.0)] {
-        let mut ins = cat(&format!("insert_{tag}"), PartKind::Insert, "heatset_m2", [s * WEDGE_BOLT_X, 34.3, -6.0]);
+        let mut ins = cat(&format!("insert_{tag}"), PartKind::Insert, "heatset_m2", [s * WEDGE_BOLT_X, 34.3, 6.0]);
         ins.rot = [90.0, 0.0, 0.0];
         ins.retained = Some("press_fit".into());
         parts.push(ins);
         fasteners.push(Fastener {
             id: format!("bolt_{tag}"),
             designation: "M2x6".into(),
-            at: [s * WEDGE_BOLT_X, y1 + 2.4, -6.0],
+            at: [s * WEDGE_BOLT_X, y1 + 2.4, 6.0],
             dir: [0.0, -1.0, 0.0],
             through: vec!["wedge".into()],
             threads_into: Some(format!("insert_{tag}")),

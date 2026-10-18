@@ -119,6 +119,8 @@ pub struct Report {
     pub bench_checklist: Vec<String>,
     /// Routed wires, thickness included.
     pub routes: Vec<crate::checks::wiring::Route>,
+    /// Disassembly order with the direction each part slides out.
+    pub assembly: Vec<crate::checks::assembly::AssemblyStep>,
 }
 
 impl Report {

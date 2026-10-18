@@ -5,8 +5,8 @@
   "summary": {
     "blockers": 0,
     "warnings": 0,
-    "passed": 13,
-    "total": 13
+    "passed": 14,
+    "total": 14
   },
   "findings": [
     {
@@ -41,9 +41,9 @@
       "severity": "info",
       "pass": true,
       "title": "Within the weight limit",
-      "message": "107.9 g (range 88.5 to 127.4 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.",
+      "message": "106.0 g (range 87.0 to 125.1 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.",
       "expected": "<= 150 g",
-      "actual": "107.9 g",
+      "actual": "106.0 g",
       "parts": [],
       "at": null,
       "fix": null
@@ -159,6 +159,19 @@
       "fix": null
     },
     {
+      "id": "assembly.order",
+      "group": "assembly",
+      "severity": "info",
+      "pass": true,
+      "title": "Everything can be assembled",
+      "message": "Every part slides in along a clear straight path. Assembly order: insert_rr, insert_rl, insert_fr, insert_fl, rx, esc, battery, motor_r, motor_l, chassis_top, insert_wr, insert_wl, power_switch, wheel_r, wheel_l, wedge, bolt_rr, bolt_rl, bolt_fr, bolt_fl, bolt_wr, bolt_wl.",
+      "expected": null,
+      "actual": null,
+      "parts": [],
+      "at": null,
+      "fix": null
+    },
+    {
       "id": "claim.holds",
       "group": "claims",
       "severity": "info",
@@ -166,7 +179,7 @@
       "title": "Claim matches the model",
       "message": "\"weighs 150 g or less\" (mass_total_g <= 150)",
       "expected": "mass_total_g <= 150",
-      "actual": "107.95",
+      "actual": "106.03",
       "parts": [],
       "at": null,
       "fix": null
@@ -186,14 +199,14 @@
     }
   ],
   "metrics": {
-    "com_x": -0.31235237703569924,
-    "com_y": 2.7899704544344397,
-    "com_z": -0.7261355942672246,
+    "com_x": -0.32690590514485796,
+    "com_y": 3.967261823094043,
+    "com_z": -0.5485550164730382,
     "footprint_mm": 122.48384379119933,
-    "mass_hi_g": 127.36300353458515,
+    "mass_hi_g": 125.06486950171332,
     "mass_limit_g": 150.0,
-    "mass_lo_g": 88.53546611412003,
-    "mass_total_g": 107.94923482435259,
+    "mass_lo_g": 87.00337675887214,
+    "mass_total_g": 106.03412313029273,
     "wire_length_mm": 257.5523165263877,
     "wire_mass_g": 0.5658424394084737
   },
@@ -201,22 +214,22 @@
     {
       "id": "chassis_bottom",
       "kind": "structure",
-      "grams": 24.61718796568001,
-      "tol_g": 4.923437593136002,
+      "grams": 22.612312988530938,
+      "tol_g": 4.522462597706188,
       "source": "computed"
     },
     {
       "id": "chassis_top",
       "kind": "structure",
-      "grams": 24.246287017652183,
-      "tol_g": 4.849257403530437,
+      "grams": 22.19908420329434,
+      "tol_g": 4.439816840658868,
       "source": "computed"
     },
     {
       "id": "wedge",
       "kind": "wedge",
-      "grams": 11.355500744419855,
-      "tol_g": 2.271100148883971,
+      "grams": 13.492466841866914,
+      "tol_g": 2.698493368373383,
       "source": "computed"
     },
     {
@@ -320,8 +333,8 @@
     {
       "id": "bolt_wl",
       "kind": "fastener",
-      "grams": 0.3256778666264044,
-      "tol_g": 0.016283893331320222,
+      "grams": 0.32567786662640436,
+      "tol_g": 0.01628389333132022,
       "source": "fastener"
     },
     {
@@ -645,6 +658,228 @@
           3.0
         ]
       ]
+    }
+  ],
+  "assembly": [
+    {
+      "order": 1,
+      "id": "bolt_wl",
+      "dir": [
+        -0.0,
+        1.0,
+        -0.0
+      ],
+      "travel_mm": 52.699999999999996
+    },
+    {
+      "order": 2,
+      "id": "bolt_wr",
+      "dir": [
+        -0.0,
+        1.0,
+        -0.0
+      ],
+      "travel_mm": 52.699999999999996
+    },
+    {
+      "order": 3,
+      "id": "bolt_fl",
+      "dir": [
+        -0.0,
+        -0.0,
+        1.0
+      ],
+      "travel_mm": 21.2
+    },
+    {
+      "order": 4,
+      "id": "bolt_fr",
+      "dir": [
+        -0.0,
+        -0.0,
+        1.0
+      ],
+      "travel_mm": 21.2
+    },
+    {
+      "order": 5,
+      "id": "bolt_rl",
+      "dir": [
+        -0.0,
+        -0.0,
+        1.0
+      ],
+      "travel_mm": 21.2
+    },
+    {
+      "order": 6,
+      "id": "bolt_rr",
+      "dir": [
+        -0.0,
+        -0.0,
+        1.0
+      ],
+      "travel_mm": 21.2
+    },
+    {
+      "order": 7,
+      "id": "wedge",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 26.099999999999998
+    },
+    {
+      "order": 8,
+      "id": "wheel_l",
+      "dir": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "travel_mm": 15.6
+    },
+    {
+      "order": 9,
+      "id": "wheel_r",
+      "dir": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "travel_mm": 15.6
+    },
+    {
+      "order": 10,
+      "id": "power_switch",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 7.199999999999999
+    },
+    {
+      "order": 11,
+      "id": "insert_wl",
+      "dir": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "travel_mm": 5.8
+    },
+    {
+      "order": 12,
+      "id": "insert_wr",
+      "dir": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "travel_mm": 5.8
+    },
+    {
+      "order": 13,
+      "id": "chassis_top",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 8.6
+    },
+    {
+      "order": 14,
+      "id": "motor_l",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 8.6
+    },
+    {
+      "order": 15,
+      "id": "motor_r",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 8.6
+    },
+    {
+      "order": 16,
+      "id": "battery",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 7.8999999999999995
+    },
+    {
+      "order": 17,
+      "id": "esc",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 5.1
+    },
+    {
+      "order": 18,
+      "id": "rx",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 4.4
+    },
+    {
+      "order": 19,
+      "id": "insert_fl",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 10.7
+    },
+    {
+      "order": 20,
+      "id": "insert_fr",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 10.7
+    },
+    {
+      "order": 21,
+      "id": "insert_rl",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 10.7
+    },
+    {
+      "order": 22,
+      "id": "insert_rr",
+      "dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "travel_mm": 10.7
     }
   ]
 }

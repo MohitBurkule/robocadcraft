@@ -271,3 +271,69 @@ pub fn min_gap(world: &World, a: usize, b: usize, h: f64) -> f64 {
     }
     best
 }
+
+/// World-space points on body `i`'s surface: wherever the sign of the distance changes between neighbouring samples of a grid with
+/// spacing `h`, the crossing is bisected. Only the sign of the distance is trusted, so subtractions do not confuse it.
+pub fn surface_points(world: &World, i: usize, h: f64) -> Vec<V3> {
+    let Some(b) = world.bodies.get(i) else { return Vec::new() };
+    let bb = b.aabb.grow(h);
+    let n = [
+        ((bb.max.x - bb.min.x) / h).ceil() as usize + 1,
+        ((bb.max.y - bb.min.y) / h).ceil() as usize + 1,
+        ((bb.max.z - bb.min.z) / h).ceil() as usize + 1,
+    ];
+    if n[0].saturating_mul(n[1]).saturating_mul(n[2]) > 30_000_000 {
+        return Vec::new();
+    }
+    let at = |x: usize, y: usize, z: usize| (z * n[1] + y) * n[0] + x;
+    let pos = |x: usize, y: usize, z: usize| v3(bb.min.x + x as f64 * h, bb.min.y + y as f64 * h, bb.min.z + z as f64 * h);
+    let mut inside = vec![false; n[0] * n[1] * n[2]];
+    for z in 0..n[2] {
+        for y in 0..n[1] {
+            for x in 0..n[0] {
+                if let Some(s) = inside.get_mut(at(x, y, z)) {
+                    *s = world.sdf(i, pos(x, y, z)) < 0.0;
+                }
+            }
+        }
+    }
+    let mut pts = Vec::new();
+    for z in 0..n[2] {
+        for y in 0..n[1] {
+            for x in 0..n[0] {
+                let here = inside.get(at(x, y, z)).copied().unwrap_or(false);
+                for (dx, dy, dz) in [(1, 0, 0), (0, 1, 0), (0, 0, 1)] {
+                    let (nx, ny, nz) = (x + dx, y + dy, z + dz);
+                    if nx >= n[0] || ny >= n[1] || nz >= n[2] || inside.get(at(nx, ny, nz)).copied().unwrap_or(here) == here {
+                        continue;
+                    }
+                    let (mut lo, mut hi) = (pos(x, y, z), pos(nx, ny, nz));
+                    for _ in 0..6 {
+                        let mid = (lo + hi) * 0.5;
+                        if (world.sdf(i, mid) < 0.0) == here {
+                            lo = mid;
+                        } else {
+                            hi = mid;
+                        }
+                    }
+                    // Put the sample on the solid side so that touching bodies are not counted as penetrating.
+                    pts.push(if here { lo } else { hi });
+                }
+            }
+        }
+    }
+    pts
+}
+
+/// Fast collision test from surface samples: true when a surface point of `a` (moved by `shift`) lies deeper than `thresh` inside
+/// `b`, or a surface point of `b` lies deeper than `thresh` inside moved `a`.
+pub fn surfaces_penetrate(world: &World, a: usize, a_pts: &[V3], b: usize, b_pts: &[V3], shift: V3, thresh: f64) -> bool {
+    let (Some(ba), Some(bb)) = (world.bodies.get(a), world.bodies.get(b)) else { return false };
+    let abox = Aabb { min: ba.aabb.min + shift, max: ba.aabb.max + shift };
+    let zone = abox.intersect(&bb.aabb).grow(0.01);
+    if zone.is_empty() {
+        return false;
+    }
+    a_pts.iter().any(|p| zone.contains(*p + shift) && world.sdf(b, *p + shift) < -thresh)
+        || b_pts.iter().any(|p| zone.contains(*p) && world.sdf(a, *p - shift) < -thresh)
+}

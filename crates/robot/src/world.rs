@@ -79,6 +79,8 @@ pub struct World {
     pub bodies: Vec<Body>,
     idx: HashMap<String, usize>,
     pub joints: BTreeMap<String, f64>,
+    /// Body id -> (direction it slides out, distance in mm), from the assembly check; drives the exploded view.
+    pub plan: BTreeMap<String, (V3, f64)>,
 }
 
 pub fn parse_color(s: &str) -> Option<[u8; 3]> {
@@ -167,12 +169,25 @@ impl World {
             }
         }
         let idx = bodies.iter().enumerate().map(|(i, b)| (b.id.clone(), i)).collect();
-        World { bodies, idx, joints }
+        World { bodies, idx, joints, plan: BTreeMap::new() }
     }
 
     /// A copy with parts moved apart for an exploded view (`amount` 1.0 = full).
     pub fn exploded(&self, amount: f64) -> World {
         let mut w = self.clone();
+        if !w.plan.is_empty() {
+            // Real assembly paths: every part moves out along the way it slides, wires stay home.
+            w.bodies.retain(|b| !b.id.starts_with("wire:"));
+            w.idx = w.bodies.iter().enumerate().map(|(i, b)| (b.id.clone(), i)).collect();
+            let plan = w.plan.clone();
+            for b in &mut w.bodies {
+                if let Some((dir, t)) = plan.get(&b.id) {
+                    b.xf.t = b.xf.t + *dir * ((t + 4.0).min(90.0) * amount);
+                    b.aabb = b.shape.bounds().transformed(&b.xf);
+                }
+            }
+            return w;
+        }
         for b in &mut w.bodies {
             let id = b.id.as_str();
             let d = if b.fastener {
@@ -207,6 +222,15 @@ impl World {
 
     pub fn body(&self, id: &str) -> Option<&Body> {
         self.index(id).and_then(|i| self.bodies.get(i))
+    }
+
+    /// Attach the assembly plan so `exploded` shows how the parts really come apart.
+    pub fn with_assembly(&self, steps: &[crate::checks::assembly::AssemblyStep]) -> World {
+        let mut w = self.clone();
+        // Parts removed first sit furthest out, so nothing hides what is still inside.
+        let n = steps.len();
+        w.plan = steps.iter().map(|s| (s.id.clone(), (V3::from_arr(s.dir), s.travel_mm + 2.5 * (n.saturating_sub(s.order)) as f64))).collect();
+        w
     }
 
     /// A copy of this world with each routed wire added as a tube body, for rendering and exports.

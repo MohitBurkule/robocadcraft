@@ -2,9 +2,9 @@
 
 ![Reference 2WD wedge](renders/iso.png)
 
-Verifier (`aws2025`): passes. 0 blockers, 0 warnings, 13 checks passed.
+Verifier (`aws2025`): passes. 0 blockers, 0 warnings, 14 checks passed.
 
-Mass 107.9 g (range 88.5 to 127.4 g).
+Mass 106.0 g (range 87.0 to 125.1 g).
 
 | Top | Exploded | Section |
 |---|---|---|

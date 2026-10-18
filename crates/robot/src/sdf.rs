@@ -408,7 +408,8 @@ impl Compiled {
             Node::Union(items) => {
                 let mut best = f64::INFINITY;
                 for it in items {
-                    if it.bounds.dist(p) >= best {
+                    let bd = it.bounds.dist(p);
+                    if bd > 0.0 && bd >= best {
                         continue;
                     }
                     best = best.min(it.sdf(p));
@@ -419,7 +420,9 @@ impl Compiled {
             Node::Subtract { base, cuts } => {
                 let mut d = base.sdf(p);
                 for c in cuts {
-                    if c.bounds.dist(p) >= -d {
+                    // Only a point outside the cut's box can safely skip it; inside the box the cut may be deep.
+                    let bd = c.bounds.dist(p);
+                    if bd > 0.0 && bd >= -d {
                         continue;
                     }
                     d = d.max(-c.sdf(p));

@@ -205,7 +205,7 @@ pub fn write_all(slug: &str, spec: &Spec, dir: &Path, mesh_step_mm: f64) -> Resu
     std::fs::create_dir_all(root.join("stl")).map_err(io)?;
     let r = resolve(spec.clone());
     let rep = verify_resolved(&r, &Options::default());
-    let world = World::start(&r).with_routes(&rep.routes);
+    let world = World::start(&r).with_routes(&rep.routes).with_assembly(&rep.assembly);
     let mut files = Vec::new();
     let mut put = |rel: &str, bytes: Vec<u8>| -> Result<(), String> {
         std::fs::write(root.join(rel), bytes).map_err(|e| e.to_string())?;

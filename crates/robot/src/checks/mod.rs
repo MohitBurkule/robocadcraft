@@ -43,6 +43,7 @@ pub struct Ctx<'a> {
     pub routes: Vec<wiring::Route>,
     /// Parts that cannot move in any direction, with the parts that block them (filled by `interference`).
     pub captive: BTreeMap<String, Vec<String>>,
+    pub assembly: Vec<assembly::AssemblyStep>,
 }
 
 pub fn verify(spec: Spec, opts: &Options) -> Report {
@@ -58,7 +59,7 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
     if valid {
         let world = World::start(r);
         {
-            let mut ctx = Ctx { r, world: &world, opts, metrics: &mut metrics, routes: Vec::new(), captive: BTreeMap::new() };
+            let mut ctx = Ctx { r, world: &world, opts, metrics: &mut metrics, routes: Vec::new(), captive: BTreeMap::new(), assembly: Vec::new() };
             if opts.deep {
                 let t0 = std::time::Instant::now();
                 findings.extend(wiring::run(&mut ctx));
@@ -85,10 +86,15 @@ pub fn verify_resolved(r: &Resolved, opts: &Options) -> Report {
             findings.extend(power::run(&mut ctx));
             findings.extend(mfg::run(&mut ctx));
             if opts.deep {
+                let t0 = std::time::Instant::now();
                 findings.extend(assembly::run(&mut ctx));
+                if std::env::var("ROBOT_TIMING").is_ok() {
+                    eprintln!("assembly {:?}", t0.elapsed());
+                }
             }
             findings.extend(validity::claims(&mut ctx));
             rep.routes = std::mem::take(&mut ctx.routes);
+            rep.assembly = std::mem::take(&mut ctx.assembly);
         }
     }
     rep.findings = findings;

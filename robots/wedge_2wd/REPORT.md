@@ -1,14 +1,14 @@
 # Verifier report: Reference 2WD wedge
 
-Profile `aws2025`. 0 blockers, 0 warnings, 13 checks passed.
+Profile `aws2025`. 0 blockers, 0 warnings, 14 checks passed.
 
-Mass 107.9 g (range 88.5 to 127.4 g, limit 150 g).
+Mass 106.0 g (range 87.0 to 125.1 g, limit 150 g).
 
 ## Findings
 
 - **pass** `validity.ok`: Spec is well formed 17 parts, 6 fasteners, 5 wires.
 - **pass** `wiring.route`: Every wire has a route 5 wires routed as real-thickness tubes through free space, 258 mm in total, no collisions.
-- **pass** `mass.ok`: Within the weight limit 107.9 g (range 88.5 to 127.4 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.
+- **pass** `mass.ok`: Within the weight limit 106.0 g (range 87.0 to 125.1 g) against the 150 g limit; 7.1 g of the uncertainty is catalog estimates, weigh the real parts and set `scale_mass_g`.
 - **pass** `interference.overlap`: No parts collide 40 touching or overlapping pairs checked; touching is allowed, overlap deeper than 0.08 mm is not.
 - **pass** `interference.sweep`: No joints to sweep No part has a joint.
 - **pass** `retention.declared`: Held by declared method `esc` is held by tape.
@@ -17,6 +17,7 @@ Mass 107.9 g (range 88.5 to 127.4 g, limit 150 g).
 - **pass** `retention.captive`: Every loose part is held 6 parts checked, 3 held by a declared method, the rest captive in their pockets.
 - **pass** `connection.joined`: Every part is attached All 17 parts lead back to the chassis through screws, shared prints, captive pockets, joints or declared connections.
 - **pass** `legal.footprint`: Fits the square Fits a 122.5 mm square (limit 150 mm).
+- **pass** `assembly.order`: Everything can be assembled Every part slides in along a clear straight path. Assembly order: insert_rr, insert_rl, insert_fr, insert_fl, rx, esc, battery, motor_r, motor_l, chassis_top, insert_wr, insert_wl, power_switch, wheel_r, wheel_l, wedge, bolt_rr, bolt_rl, bolt_fr, bolt_fl, bolt_wr, bolt_wl.
 - **pass** `claim.holds`: Claim matches the model "weighs 150 g or less" (mass_total_g <= 150)
 - **pass** `claim.holds`: Claim matches the model "fits the 150 mm square" (footprint_mm <= 150)
 
@@ -24,9 +25,9 @@ Mass 107.9 g (range 88.5 to 127.4 g, limit 150 g).
 
 | Part | Grams | Plus/minus | Source |
 |---|---|---|---|
-| chassis_bottom | 24.62 | 4.92 | computed |
-| chassis_top | 24.25 | 4.85 | computed |
-| wedge | 11.36 | 2.27 | computed |
+| chassis_bottom | 22.61 | 4.52 | computed |
+| chassis_top | 22.20 | 4.44 | computed |
+| wedge | 13.49 | 2.70 | computed |
 | motor_l | 7.50 | 1.12 | catalog |
 | motor_r | 7.50 | 1.12 | catalog |
 | wheel_l | 3.40 | 0.51 | catalog |
