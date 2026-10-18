@@ -70,7 +70,10 @@ pub fn prism_solid(points: &[[f64; 2]], h: f64) -> Result<Solid, String> {
 
 fn matrix(xf: &Xform) -> Matrix4 {
     let m = &xf.r.0;
-    let g = |r: usize, c: usize| m.get(r).and_then(|row| row.get(c)).copied().unwrap_or(0.0);
+    // Snap 90-degree rotations to exact 0/±1: cos(pi/2) residue makes faces near-coincident,
+    // which the kernel's booleans reject.
+    let snap = |v: f64| if (v - v.round()).abs() < 1e-9 { v.round() } else { v };
+    let g = |r: usize, c: usize| snap(m.get(r).and_then(|row| row.get(c)).copied().unwrap_or(0.0));
     // cgmath is column-major
     Matrix4::new(
         g(0, 0), g(1, 0), g(2, 0), 0.0,
@@ -276,7 +279,17 @@ fn note(s: String) {
 /// slightly off: a hole or pocket is missing).
 pub fn solids_with_notes(shape: &Shape, xf: &Xform) -> (Result<Vec<Solid>, String>, Vec<String>) {
     NOTES.with(|n| n.borrow_mut().clear());
-    let r = solids_at(shape, matrix(xf));
+    let mut r = solids_at(shape, matrix(xf));
+    if r.is_err() {
+        // Some unions only work in the part's own frame; then place the result, with a time
+        // limit because moving a boolean result can be very slow.
+        if let Ok(local) = solids(shape) {
+            let m = matrix(xf);
+            if let Ok(Some(v)) = guarded(move || Some(local.iter().map(|s| builder::transformed(s, m)).collect::<Vec<_>>())) {
+                r = Ok(v);
+            }
+        }
+    }
     (r, NOTES.with(|n| std::mem::take(&mut *n.borrow_mut())))
 }
 
@@ -302,8 +315,18 @@ fn build(shape: &Shape, m: Matrix4) -> Result<Vec<Solid>, String> {
         Shape::Prism { points, height } => vec![at(prism_solid(points, *height)?)],
         Shape::Tube { points, radius } => tube(points, *radius)?.into_iter().map(at).collect(),
         Shape::Union { items } => {
-            let parts = items.iter().map(|i| one(i, m)).collect::<Result<Vec<_>, _>>()?;
-            vec![union_all(parts)?]
+            let mut parts = Vec::new();
+            for i in items {
+                parts.extend(build(i, m)?);
+            }
+            match union_all(parts.clone()) {
+                Ok(u) => vec![u],
+                // Overlapping solids print and view the same as their union, so keep them apart.
+                Err(e) => {
+                    note(format!("{e}: kept {} overlapping solids", parts.len()));
+                    parts
+                }
+            }
         }
         Shape::Intersect { items } => {
             let mut it = items.iter();
@@ -315,10 +338,12 @@ fn build(shape: &Shape, m: Matrix4) -> Result<Vec<Solid>, String> {
             vec![acc]
         }
         Shape::Subtract { base, cut } => {
-            let mut acc = one(base, m)?;
+            let mut out = Vec::new();
+            let cutters = cut.iter().map(|c| build(c, m)).collect::<Result<Vec<_>, _>>()?.concat();
             let t0 = std::time::Instant::now();
-            for c in cut {
-                for s in build(c, m)? {
+            for mut acc in build(base, m)? {
+                for s in &cutters {
+                    let s = s.clone();
                     if t0.elapsed() > CUT_BUDGET {
                         note("a cut was skipped: time budget for this part spent".into());
                         continue;
@@ -331,8 +356,9 @@ fn build(shape: &Shape, m: Matrix4) -> Result<Vec<Solid>, String> {
                         Err(e) => note(format!("a cut was skipped: {e}")),
                     }
                 }
+                out.push(acc);
             }
-            vec![acc]
+            out
         }
         Shape::Place { shape, at, rot } => {
             let xf = Xform::new(crate::math::V3::from_arr(*at), crate::math::V3::from_arr(*rot));
